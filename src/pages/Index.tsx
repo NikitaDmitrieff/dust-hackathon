@@ -78,14 +78,11 @@ const Index = () => {
       
       <div className="">
         {currentView === 'home' && (
-          <>
-            <HeroSection 
-              onAction={handleAction} 
-              onEditForm={handleEditForm}
-              onViewDashboard={handleViewDashboard}
-            />
-            <FormsGrid onEditForm={handleEditForm} onViewDashboard={handleViewDashboard} />
-          </>
+          <HeroSection 
+            onAction={handleAction} 
+            onEditForm={handleEditForm}
+            onViewDashboard={handleViewDashboard}
+          />
         )}
         {currentView === 'create' && <FormBuilder onBack={handleBack} editingFormId={editingFormId} />}
         {currentView === 'enter-code' && (
