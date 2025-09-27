@@ -3,7 +3,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Mic, Link, Sparkles, Zap } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Mic, Link, Sparkles, Zap, Copy, MessageCircle, Mail, Check } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 import FormPreview, { FormData, Question } from './FormPreview';
 
 interface FormBuilderProps {
@@ -24,6 +26,12 @@ const FormBuilder = ({ onBack }: FormBuilderProps) => {
 
   const [formTitle, setFormTitle] = useState('');
   const [formDescription, setFormDescription] = useState('');
+  const [isLinkDialogOpen, setIsLinkDialogOpen] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
+  const { toast } = useToast();
+
+  // Generate a random URL for the form
+  const finalFormUrl = `https://forms.lovable.app/form/${Math.random().toString(36).substring(2, 15)}`;
 
   const [formData, setFormData] = useState<FormData>({
     title: 'Customer Feedback Survey',
@@ -164,6 +172,25 @@ const FormBuilder = ({ onBack }: FormBuilderProps) => {
 
   const handleGetFinalLink = () => {
     addActivityLog('Generating final form link...');
+    setIsLinkDialogOpen(true);
+  };
+
+  const copyToClipboard = async () => {
+    try {
+      await navigator.clipboard.writeText(finalFormUrl);
+      setIsCopied(true);
+      toast({
+        title: "Copied!",
+        description: "Form link copied to clipboard",
+      });
+      setTimeout(() => setIsCopied(false), 2000);
+    } catch (err) {
+      toast({
+        title: "Error",
+        description: "Failed to copy to clipboard",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -271,6 +298,75 @@ const FormBuilder = ({ onBack }: FormBuilderProps) => {
           </div>
         </div>
       </div>
+
+      {/* Final Link Dialog */}
+      <Dialog open={isLinkDialogOpen} onOpenChange={setIsLinkDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Link className="w-5 h-5 text-primary" />
+              Your Form Link is Ready!
+            </DialogTitle>
+            <DialogDescription>
+              Share this link to collect responses for your form.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            {/* Link Display with Copy Button */}
+            <div className="flex items-center space-x-2">
+              <div className="flex-1 p-3 bg-muted rounded-lg border">
+                <code className="text-sm text-foreground break-all">{finalFormUrl}</code>
+              </div>
+              <Button
+                size="sm"
+                onClick={copyToClipboard}
+                className="flex items-center gap-2 px-3"
+              >
+                {isCopied ? (
+                  <Check className="w-4 h-4 text-green-500" />
+                ) : (
+                  <Copy className="w-4 h-4" />
+                )}
+                {isCopied ? 'Copied!' : 'Copy'}
+              </Button>
+            </div>
+
+            {/* Social Sharing Icons */}
+            <div className="pt-4 border-t">
+              <p className="text-sm text-muted-foreground mb-3">Share via:</p>
+              <div className="flex gap-3">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex items-center gap-2"
+                  onClick={() => window.open(`https://wa.me/?text=${encodeURIComponent(`Check out this form: ${finalFormUrl}`)}`)}
+                >
+                  <MessageCircle className="w-4 h-4 text-green-600" />
+                  WhatsApp
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex items-center gap-2"
+                  onClick={() => window.open(`https://m.me/?text=${encodeURIComponent(`Check out this form: ${finalFormUrl}`)}`)}
+                >
+                  <MessageCircle className="w-4 h-4 text-blue-600" />
+                  Messenger
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex items-center gap-2"
+                  onClick={() => window.open(`mailto:?subject=Form Link&body=${encodeURIComponent(`I'd like to share this form with you: ${finalFormUrl}`)}`)}
+                >
+                  <Mail className="w-4 h-4 text-red-600" />
+                  Email
+                </Button>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
