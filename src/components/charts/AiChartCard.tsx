@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Copy, Download, Image, ChevronDown, ChevronUp, Code2 } from 'lucide-react';
+import { Copy, Download, Image, ChevronDown, ChevronUp, Code2, ArrowUp } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { type ChartResult } from '@/types/ChartSpec';
 import { toVegaLite } from '@/lib/toVegaLite';
@@ -18,9 +18,10 @@ declare global {
 
 interface AiChartCardProps {
   result: ChartResult;
+  onDuplicate?: (result: ChartResult) => void;
 }
 
-export const AiChartCard: React.FC<AiChartCardProps> = ({ result }) => {
+export const AiChartCard: React.FC<AiChartCardProps> = ({ result, onDuplicate }) => {
   const [isNotesOpen, setIsNotesOpen] = useState(false);
   const [vegaView, setVegaView] = useState<any>(null);
   const chartRef = useRef<HTMLDivElement>(null);
@@ -161,7 +162,7 @@ export const AiChartCard: React.FC<AiChartCardProps> = ({ result }) => {
         </div>
 
         {/* Actions */}
-        <div className="flex gap-2 mb-4">
+        <div className="flex gap-2 mb-4 flex-wrap">
           <Button
             variant="outline"
             size="sm"
@@ -193,6 +194,18 @@ export const AiChartCard: React.FC<AiChartCardProps> = ({ result }) => {
             <Download className="w-4 h-4" />
             CSV
           </Button>
+          
+          {onDuplicate && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onDuplicate(result)}
+              className="flex items-center gap-2"
+            >
+              <ArrowUp className="w-4 h-4" />
+              Dupliquer en haut
+            </Button>
+          )}
         </div>
 
         {/* Notes & Insights */}

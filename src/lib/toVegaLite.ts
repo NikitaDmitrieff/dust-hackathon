@@ -64,6 +64,11 @@ export const toVegaLite = (result: ChartResult) => {
       mark = { type: "bar", tooltip: true };
       if (spec.series) {
         encoding.color = { field: spec.series, type: "nominal" };
+        // Add normalize stack for percentage stacking
+        encoding.y = {
+          ...encoding.y,
+          stack: "normalize"
+        };
       }
       break;
     

@@ -1,83 +1,96 @@
 import { type AiChartsResponse } from '@/types/ChartSpec';
 
-export const mockResults: AiChartsResponse = {
-  results: [
-    {
-      spec: {
-        title: "Évolution des ventes mensuelles",
-        rationale: "Ce graphique en ligne montre la tendance des ventes sur les 6 derniers mois",
-        sql: "SELECT mois, SUM(ventes) as total_ventes FROM ventes_mensuelles GROUP BY mois ORDER BY mois",
-        chartType: "line",
-        x: "mois",
-        y: "total_ventes",
-        series: null,
-        aggregate: "sum",
-        limit: 30,
-        notes: [
-          "Forte croissance observée en mars (+35%)",
-          "Légère baisse en avril, probablement saisonnière",
-          "Tendance générale positive sur la période"
+// Preset data as specified
+export const presets = {
+  'time-series': {
+    name: 'Série temporelle',
+    data: {
+      "results": [{
+        "spec": {
+          "title": "Commandes par jour (14j)",
+          "rationale": "La série temporelle révèle tendance et saisonnalité.",
+          "sql": "SELECT day, orders FROM safe_view_orders_14d",
+          "chartType": "line" as const,
+          "x": "day",
+          "y": "orders",
+          "series": null,
+          "aggregate": null,
+          "limit": 14,
+          "notes": ["Pic le lundi", "Creux le week-end"]
+        },
+        "rows": [
+          {"day":"2025-09-01","orders":12},
+          {"day":"2025-09-02","orders":15},
+          {"day":"2025-09-03","orders":9},
+          {"day":"2025-09-04","orders":18},
+          {"day":"2025-09-05","orders":16},
+          {"day":"2025-09-06","orders":7},
+          {"day":"2025-09-07","orders":6},
+          {"day":"2025-09-08","orders":20},
+          {"day":"2025-09-09","orders":19},
+          {"day":"2025-09-10","orders":17},
+          {"day":"2025-09-11","orders":21},
+          {"day":"2025-09-12","orders":20},
+          {"day":"2025-09-13","orders":8},
+          {"day":"2025-09-14","orders":7}
         ]
-      },
-      rows: [
-        { mois: "2024-01", total_ventes: 45000 },
-        { mois: "2024-02", total_ventes: 52000 },
-        { mois: "2024-03", total_ventes: 68000 },
-        { mois: "2024-04", total_ventes: 61000 },
-        { mois: "2024-05", total_ventes: 71000 },
-        { mois: "2024-06", total_ventes: 78000 }
-      ]
-    },
-    {
-      spec: {
-        title: "Répartition des ventes par région",
-        rationale: "Graphique en secteurs pour visualiser la contribution de chaque région",
-        sql: "SELECT region, SUM(ventes) as total FROM ventes GROUP BY region",
-        chartType: "pie",
-        x: "region",
-        y: "total",
-        series: null,
-        aggregate: "sum",
-        limit: 30,
-        notes: [
-          "L'Île-de-France représente 40% du chiffre d'affaires",
-          "Les régions du Sud-Est montrent un potentiel de croissance",
-          "Opportunité d'expansion dans l'Ouest"
-        ]
-      },
-      rows: [
-        { region: "Île-de-France", total: 156000 },
-        { region: "Auvergne-Rhône-Alpes", total: 89000 },
-        { region: "Provence-Alpes-Côte d'Azur", total: 67000 },
-        { region: "Nouvelle-Aquitaine", total: 45000 },
-        { region: "Occitanie", total: 38000 }
-      ]
-    },
-    {
-      spec: {
-        title: "Performance par commercial",
-        rationale: "Comparaison des performances individuelles avec graphique en barres",
-        sql: "SELECT commercial, SUM(ca) as chiffre_affaires FROM ventes_commercial GROUP BY commercial ORDER BY ca DESC",
-        chartType: "bar",
-        x: "commercial",
-        y: "chiffre_affaires",
-        series: null,
-        aggregate: "sum",
-        limit: 10,
-        notes: [
-          "Marie Dubois dépasse largement les objectifs (+25%)",
-          "Formation recommandée pour les 3 derniers du classement",
-          "Écart significatif entre le top performer et la moyenne"
-        ]
-      },
-      rows: [
-        { commercial: "Marie Dubois", chiffre_affaires: 95000 },
-        { commercial: "Jean Martin", chiffre_affaires: 78000 },
-        { commercial: "Sophie Laurent", chiffre_affaires: 65000 },
-        { commercial: "Pierre Moreau", chiffre_affaires: 58000 },
-        { commercial: "Julie Bernard", chiffre_affaires: 52000 },
-        { commercial: "Thomas Petit", chiffre_affaires: 41000 }
-      ]
+      }]
     }
-  ]
+  },
+  'top-categories': {
+    name: 'Top catégories',
+    data: {
+      "results": [{
+        "spec": {
+          "title": "Top catégories (30 derniers jours)",
+          "rationale": "Comparaison des volumes par catégorie.",
+          "sql": "SELECT category, sum_qty as count FROM safe_view_top_categories_30d",
+          "chartType": "bar" as const,
+          "x": "category",
+          "y": "count",
+          "series": null,
+          "aggregate": null,
+          "limit": 8,
+          "notes": ["Catégorie A > 2x Catégorie D"]
+        },
+        "rows": [
+          {"category":"A","count":320},
+          {"category":"B","count":280},
+          {"category":"C","count":210},
+          {"category":"D","count":150},
+          {"category":"E","count":120}
+        ]
+      }]
+    }
+  },
+  'pie': {
+    name: 'Répartition',
+    data: {
+      "results": [{
+        "spec": {
+          "title": "Répartition par segment client",
+          "rationale": "Vision synthétique de la part de chaque segment.",
+          "sql": "SELECT segment, share FROM safe_view_segment_share",
+          "chartType": "pie" as const,
+          "x": "segment",
+          "y": "share",
+          "series": null,
+          "aggregate": null,
+          "limit": 6,
+          "notes": ["Segment Pro domine"]
+        },
+        "rows": [
+          {"segment": "Pro", "share": 52},
+          {"segment": "PME", "share": 28},
+          {"segment": "Particulier", "share": 20}
+        ]
+      }]
+    }
+  }
 };
+
+export const getPresetByKey = (key: string): AiChartsResponse | null => {
+  return presets[key as keyof typeof presets]?.data || null;
+};
+
+export const mockResults: AiChartsResponse = presets['time-series'].data;

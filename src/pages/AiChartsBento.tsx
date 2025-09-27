@@ -6,28 +6,69 @@ import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { CalendarDays, BarChart3, History, Filter, Sparkles, Play, Loader2 } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { CalendarDays, BarChart3, History, Filter, Sparkles, Play, Loader2, Pin, PinOff, FileCode } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { BentoGrid, BentoResultsGrid } from '@/components/bento/BentoGrid';
 import { BentoTile } from '@/components/bento/BentoTile';
 import { AiChartCard } from '@/components/charts/AiChartCard';
+import { DummyJSONEditor } from '@/components/DummyJSONEditor';
 import { type AiChartsResponse, type ChartResult } from '@/types/ChartSpec';
-import { mockResults } from '@/lib/mock';
+import { mockResults, presets, getPresetByKey } from '@/lib/mock';
+
+interface HistoryItem {
+  query: string;
+  isPinned: boolean;
+}
 
 const AiChartsBento: React.FC = () => {
   const [question, setQuestion] = useState('');
   const [isDemoMode, setIsDemoMode] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [results, setResults] = useState<ChartResult[]>([]);
-  const [history, setHistory] = useState<string[]>([]);
+  const [history, setHistory] = useState<HistoryItem[]>([]);
+  const [selectedPreset, setSelectedPreset] = useState<string>('');
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const { toast } = useToast();
 
-  // Load history from localStorage on mount
+  // Load state from localStorage and URL params on mount
   useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    
+    // Load demo mode from URL
+    if (urlParams.get('demo') === '1') {
+      setIsDemoMode(true);
+    }
+    
+    // Load question from URL
+    const urlQuestion = urlParams.get('q');
+    if (urlQuestion) {
+      setQuestion(decodeURIComponent(urlQuestion));
+    }
+    
+    // Load preset from URL
+    const urlPreset = urlParams.get('preset');
+    if (urlPreset && presets[urlPreset as keyof typeof presets]) {
+      setSelectedPreset(urlPreset);
+      setIsDemoMode(true);
+      const presetData = getPresetByKey(urlPreset);
+      if (presetData) {
+        setResults(presetData.results);
+      }
+    }
+    
+    // Load history from localStorage
     const savedHistory = localStorage.getItem('aiCharts.history');
     if (savedHistory) {
       try {
-        setHistory(JSON.parse(savedHistory));
+        const parsed = JSON.parse(savedHistory);
+        // Handle migration from old string array format
+        if (Array.isArray(parsed) && parsed.length > 0 && typeof parsed[0] === 'string') {
+          setHistory(parsed.map(query => ({ query, isPinned: false })));
+        } else {
+          setHistory(parsed);
+        }
       } catch (error) {
         console.error('Error loading history:', error);
       }
@@ -36,9 +77,62 @@ const AiChartsBento: React.FC = () => {
 
   // Save history to localStorage
   const saveToHistory = (query: string) => {
-    const newHistory = [query, ...history.filter(h => h !== query)].slice(0, 5);
+    const existingItem = history.find(h => h.query === query);
+    let newHistory: HistoryItem[];
+    
+    if (existingItem) {
+      // Move existing item to top, keep pin status
+      newHistory = [existingItem, ...history.filter(h => h.query !== query)];
+    } else {
+      // Add new item at top
+      newHistory = [{ query, isPinned: false }, ...history];
+    }
+    
+    // Keep pinned items and limit unpinned to make total ≤ 5
+    const pinnedItems = newHistory.filter(h => h.isPinned);
+    const unpinnedItems = newHistory.filter(h => !h.isPinned);
+    const maxUnpinned = Math.max(0, 5 - pinnedItems.length);
+    
+    newHistory = [...pinnedItems, ...unpinnedItems.slice(0, maxUnpinned)];
+    
     setHistory(newHistory);
     localStorage.setItem('aiCharts.history', JSON.stringify(newHistory));
+  };
+
+  // Toggle pin status
+  const togglePin = (query: string) => {
+    const newHistory = history.map(h => 
+      h.query === query ? { ...h, isPinned: !h.isPinned } : h
+    );
+    setHistory(newHistory);
+    localStorage.setItem('aiCharts.history', JSON.stringify(newHistory));
+  };
+
+  // Update URL with current state
+  const updateURL = (params: { demo?: boolean; preset?: string; question?: string }) => {
+    const url = new URL(window.location.href);
+    
+    if (params.demo !== undefined) {
+      if (params.demo) {
+        url.searchParams.set('demo', '1');
+      } else {
+        url.searchParams.delete('demo');
+      }
+    }
+    
+    if (params.preset) {
+      url.searchParams.set('preset', params.preset);
+    } else {
+      url.searchParams.delete('preset');
+    }
+    
+    if (params.question) {
+      url.searchParams.set('q', encodeURIComponent(params.question));
+    } else {
+      url.searchParams.delete('q');
+    }
+    
+    window.history.pushState({}, '', url.toString());
   };
 
   const generateChart = async () => {
@@ -53,19 +147,29 @@ const AiChartsBento: React.FC = () => {
 
     setIsLoading(true);
     saveToHistory(question.trim());
+    updateURL({ demo: isDemoMode, question: question.trim() });
 
     try {
       if (isDemoMode) {
+        // Use preset data if selected, otherwise use default mock
+        let dataToUse = mockResults;
+        if (selectedPreset) {
+          const presetData = getPresetByKey(selectedPreset);
+          if (presetData) {
+            dataToUse = presetData;
+          }
+        }
+        
         // Simulate loading for demo
         await new Promise(resolve => setTimeout(resolve, 1500));
-        setResults(mockResults.results);
+        setResults(dataToUse.results);
         toast({
           title: "Graphiques générés !",
           description: "Données de démonstration affichées",
         });
       } else {
         // Call real API
-        const response = await fetch('/functions/v1/ai-charts', {
+        const response = await fetch(process.env.NEXT_PUBLIC_AI_CHARTS_ENDPOINT || '/functions/v1/ai-charts', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -100,6 +204,44 @@ const AiChartsBento: React.FC = () => {
 
   const runHistoryQuery = (query: string) => {
     setQuestion(query);
+    updateURL({ question: query });
+  };
+
+  const handlePresetChange = (presetKey: string) => {
+    setSelectedPreset(presetKey);
+    updateURL({ preset: presetKey });
+    
+    const presetData = getPresetByKey(presetKey);
+    if (presetData && isDemoMode) {
+      setResults(presetData.results);
+    }
+  };
+
+  const handleDemoModeChange = (checked: boolean) => {
+    setIsDemoMode(checked);
+    updateURL({ demo: checked });
+    
+    // Clear preset if switching to real mode
+    if (!checked) {
+      setSelectedPreset('');
+      updateURL({ preset: '' });
+    }
+  };
+
+  const handleJSONApply = (data: AiChartsResponse) => {
+    setResults(data.results);
+    toast({
+      title: "Données appliquées !",
+      description: `${data.results.length} visualisation(s) chargée(s)`,
+    });
+  };
+
+  const handleDuplicate = (result: ChartResult) => {
+    setResults([result, ...results]);
+    toast({
+      title: "Graphique dupliqué !",
+      description: "Le graphique a été ajouté en haut de la liste",
+    });
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -109,157 +251,213 @@ const AiChartsBento: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900">
-      <div className="container mx-auto p-6 space-y-8">
-        {/* Hero Section - Bento Grid */}
-        <div className="space-y-6">
-          <div className="text-center">
-            <h1 className="text-4xl font-bold tracking-tight text-foreground mb-2">
-              AI Charts
-            </h1>
-            <p className="text-xl text-muted-foreground">
-              Posez une question, on génère le graphique le plus pertinent.
-            </p>
-          </div>
+    <TooltipProvider>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900">
+        <div className="container mx-auto p-6 space-y-8">
+          {/* Hero Section - Bento Grid */}
+          <div className="space-y-6">
+            <div className="text-center">
+              <h1 className="text-4xl font-bold tracking-tight text-foreground mb-2">
+                AI Charts
+              </h1>
+              <p className="text-xl text-muted-foreground">
+                Posez une question, on génère le graphique le plus pertinent.
+              </p>
+            </div>
 
-          <BentoGrid>
-            {/* Tile A: Main Query Input (2x1) */}
-            <BentoTile cols={2} rows={1} className="space-y-6">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                  <BarChart3 className="w-5 h-5 text-primary" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-lg">Génération IA</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Décrivez vos besoins d'analyse
-                  </p>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="question">Votre question</Label>
-                  <Input
-                    id="question"
-                    placeholder="ex: Montre-moi l'évolution des ventes par mois"
-                    value={question}
-                    onChange={(e) => setQuestion(e.target.value)}
-                    onKeyPress={handleKeyPress}
-                    disabled={isLoading}
-                    className="text-base"
-                  />
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <Button 
-                    onClick={generateChart}
-                    disabled={isLoading || !question.trim()}
-                    className="flex items-center gap-2"
-                  >
-                    {isLoading ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <Sparkles className="w-4 h-4" />
-                    )}
-                    {isLoading ? 'Génération...' : 'Générer le graphique'}
-                  </Button>
-
-                  <div className="flex items-center space-x-2">
-                    <Switch
-                      id="demo-mode"
-                      checked={isDemoMode}
-                      onCheckedChange={setIsDemoMode}
-                    />
-                    <Label htmlFor="demo-mode" className="text-sm">
-                      Mode démo (mock)
-                    </Label>
+            <BentoGrid>
+              {/* Tile A: Main Query Input (2x1) */}
+              <BentoTile cols={2} rows={1} className="space-y-6">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                    <BarChart3 className="w-5 h-5 text-primary" />
                   </div>
-                </div>
-              </div>
-            </BentoTile>
-
-            {/* Tile B: History (1x1) */}
-            <BentoTile cols={1} rows={1}>
-              <div className="h-full flex flex-col">
-                <div className="flex items-center gap-2 mb-4">
-                  <History className="w-5 h-5 text-primary" />
-                  <h3 className="font-semibold">Historique</h3>
-                </div>
-
-                <div className="flex-1 overflow-y-auto">
-                  {history.length === 0 ? (
+                  <div>
+                    <h3 className="font-semibold text-lg">Génération IA</h3>
                     <p className="text-sm text-muted-foreground">
-                      Aucune recherche récente
+                      Décrivez vos besoins d'analyse
                     </p>
-                  ) : (
-                    <div className="space-y-2">
-                      {history.map((query, index) => (
-                        <div key={index} className="flex items-center gap-2">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => runHistoryQuery(query)}
-                            className="flex-1 justify-start text-left h-auto p-2 text-xs"
-                            disabled={isLoading}
-                          >
-                            <div className="truncate">{query}</div>
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => {
-                              setQuestion(query);
-                              generateChart();
-                            }}
-                            disabled={isLoading}
-                            className="p-1"
-                          >
-                            <Play className="w-3 h-3" />
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </BentoTile>
-
-            {/* Tile C: Filters (1x1) */}
-            <BentoTile cols={1} rows={1}>
-              <div className="h-full flex flex-col">
-                <div className="flex items-center gap-2 mb-4">
-                  <Filter className="w-5 h-5 text-primary" />
-                  <h3 className="font-semibold">Filtres</h3>
-                  <Badge variant="secondary" className="text-xs">
-                    à venir
-                  </Badge>
-                </div>
-
-                <div className="space-y-4 opacity-50">
-                  <div>
-                    <Label className="text-sm font-medium">Période</Label>
-                    <div className="flex items-center gap-2 mt-1">
-                      <CalendarDays className="w-4 h-4 text-muted-foreground" />
-                      <span className="text-sm text-muted-foreground">
-                        Sélection de dates
-                      </span>
-                    </div>
-                  </div>
-
-                  <Separator />
-
-                  <div>
-                    <Label className="text-sm font-medium">Tables</Label>
-                    <div className="mt-1">
-                      <span className="text-sm text-muted-foreground">
-                        Auto-détection
-                      </span>
-                    </div>
                   </div>
                 </div>
-              </div>
-            </BentoTile>
+
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="question">Votre question</Label>
+                    <Input
+                      id="question"
+                      placeholder="Ex : Ventes par jour (30 derniers jours) ?"
+                      value={question}
+                      onChange={(e) => setQuestion(e.target.value)}
+                      onKeyPress={handleKeyPress}
+                      disabled={isLoading}
+                      className="text-base"
+                    />
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-3">
+                    <Button 
+                      onClick={generateChart}
+                      disabled={isLoading || !question.trim()}
+                      className="flex items-center gap-2"
+                    >
+                      {isLoading ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Sparkles className="w-4 h-4" />
+                      )}
+                      {isLoading ? 'Génération...' : 'Générer avec l\'IA'}
+                    </Button>
+
+                    <Button
+                      variant="outline"
+                      onClick={() => setIsDrawerOpen(true)}
+                      className="flex items-center gap-2"
+                    >
+                      <FileCode className="w-4 h-4" />
+                      Coller JSON factice
+                    </Button>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-4">
+                    <div className="flex items-center space-x-2">
+                      <Switch
+                        id="demo-mode"
+                        checked={isDemoMode}
+                        onCheckedChange={handleDemoModeChange}
+                      />
+                      <Label htmlFor="demo-mode" className="text-sm">
+                        Mode démo (données factices)
+                      </Label>
+                    </div>
+
+                    {isDemoMode && (
+                      <div className="flex items-center gap-2">
+                        <Label className="text-sm">Présets:</Label>
+                        <Select value={selectedPreset} onValueChange={handlePresetChange}>
+                          <SelectTrigger className="w-40">
+                            <SelectValue placeholder="Choisir..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {Object.entries(presets).map(([key, preset]) => (
+                              <SelectItem key={key} value={key}>
+                                {preset.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </BentoTile>
+
+              {/* Tile B: History (1x1) */}
+              <BentoTile cols={1} rows={1}>
+                <div className="h-full flex flex-col">
+                  <div className="flex items-center gap-2 mb-4">
+                    <History className="w-5 h-5 text-primary" />
+                    <h3 className="font-semibold">Historique</h3>
+                  </div>
+
+                  <div className="flex-1 overflow-y-auto">
+                    {history.length === 0 ? (
+                      <p className="text-sm text-muted-foreground">
+                        Aucune recherche récente
+                      </p>
+                    ) : (
+                      <div className="space-y-2">
+                        {history.map((item, index) => (
+                          <div key={index} className="flex items-center gap-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => runHistoryQuery(item.query)}
+                              className="flex-1 justify-start text-left h-auto p-2 text-xs"
+                              disabled={isLoading}
+                            >
+                              <div className="truncate">{item.query}</div>
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => togglePin(item.query)}
+                              className="p-1"
+                            >
+                              {item.isPinned ? (
+                                <Pin className="w-3 h-3 text-primary" />
+                              ) : (
+                                <PinOff className="w-3 h-3" />
+                              )}
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                setQuestion(item.query);
+                                generateChart();
+                              }}
+                              disabled={isLoading}
+                              className="p-1"
+                            >
+                              <Play className="w-3 h-3" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </BentoTile>
+
+              {/* Tile C: Filters (1x1) */}
+              <BentoTile cols={1} rows={1}>
+                <div className="h-full flex flex-col">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Filter className="w-5 h-5 text-primary" />
+                    <h3 className="font-semibold">Filtres</h3>
+                    <Badge variant="secondary" className="text-xs">
+                      à venir
+                    </Badge>
+                  </div>
+
+                  <div className="space-y-4 opacity-50">
+                    <div>
+                      <Label className="text-sm font-medium">Période</Label>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div className="flex items-center gap-2 mt-1 cursor-not-allowed">
+                            <CalendarDays className="w-4 h-4 text-muted-foreground" />
+                            <span className="text-sm text-muted-foreground">
+                              Sélection de dates
+                            </span>
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Fonctionnalité à venir</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
+
+                    <Separator />
+
+                    <div>
+                      <Label className="text-sm font-medium">Tables</Label>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div className="mt-1 cursor-not-allowed">
+                            <span className="text-sm text-muted-foreground">
+                              Auto-détection
+                            </span>
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Fonctionnalité à venir</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
+                  </div>
+                </div>
+              </BentoTile>
           </BentoGrid>
         </div>
 
@@ -299,28 +497,39 @@ const AiChartsBento: React.FC = () => {
               // Actual results
               <BentoResultsGrid>
                 {results.map((result, index) => (
-                  <AiChartCard key={index} result={result} />
+                  <AiChartCard key={index} result={result} onDuplicate={handleDuplicate} />
                 ))}
               </BentoResultsGrid>
             )}
           </div>
         )}
 
-        {/* Empty State */}
-        {results.length === 0 && !isLoading && (
-          <div className="text-center py-12">
-            <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-              <BarChart3 className="w-8 h-8 text-primary" />
+          {/* Empty State */}
+          {results.length === 0 && !isLoading && (
+            <div className="text-center py-12">
+              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                <BarChart3 className="w-8 h-8 text-primary" />
+              </div>
+              <h3 className="text-lg font-semibold mb-2">Prêt à analyser vos données</h3>
+              <p className="text-muted-foreground max-w-md mx-auto mb-4">
+                Posez une question sur vos données et notre IA générera automatiquement 
+                les visualisations les plus pertinentes pour vous aider à prendre des décisions.
+              </p>
+              <p className="text-sm text-muted-foreground">
+                <strong>Astuce :</strong> activez le Mode démo pour un aperçu instantané.
+              </p>
             </div>
-            <h3 className="text-lg font-semibold mb-2">Prêt à analyser vos données</h3>
-            <p className="text-muted-foreground max-w-md mx-auto">
-              Posez une question sur vos données et notre IA générera automatiquement 
-              les visualisations les plus pertinentes pour vous aider à prendre des décisions.
-            </p>
-          </div>
-        )}
+          )}
+        </div>
+
+        {/* Dummy JSON Editor Drawer */}
+        <DummyJSONEditor
+          isOpen={isDrawerOpen}
+          onClose={() => setIsDrawerOpen(false)}
+          onApply={handleJSONApply}
+        />
       </div>
-    </div>
+    </TooltipProvider>
   );
 };
 
