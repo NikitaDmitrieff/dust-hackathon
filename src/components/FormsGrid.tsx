@@ -36,6 +36,9 @@ const FormsGrid = ({ onEditForm, onViewDashboard }: FormsGridProps) => {
     try {
       console.log('Fetching forms for user:', userEmail);
       
+      // Ensure RLS is properly set before querying
+      await new Promise(resolve => setTimeout(resolve, 100)); // Small delay for RLS to be set
+      
       // Fetch forms where user_id matches the current user's email
       const { data, error } = await supabase
         .from('form')
@@ -47,11 +50,27 @@ const FormsGrid = ({ onEditForm, onViewDashboard }: FormsGridProps) => {
 
       if (error) {
         console.error('Error fetching forms:', error);
-        toast({
-          title: "Error",
-          description: "Failed to fetch your forms",
-          variant: "destructive",
-        });
+        
+        // Retry once if we get an error
+        console.log('Retrying form fetch...');
+        const { data: retryData, error: retryError } = await supabase
+          .from('form')
+          .select('form_id, title, description, creation_date')
+          .eq('user_id', userEmail)
+          .order('creation_date', { ascending: false });
+          
+        if (retryError) {
+          console.error('Retry failed:', retryError);
+          toast({
+            title: "Error",
+            description: "Failed to fetch your forms. Please try refreshing the page.",
+            variant: "destructive",
+          });
+          return;
+        }
+        
+        console.log('Retry successful:', retryData);
+        setForms(retryData || []);
         return;
       }
 
@@ -60,7 +79,7 @@ const FormsGrid = ({ onEditForm, onViewDashboard }: FormsGridProps) => {
       console.error('Error:', error);
       toast({
         title: "Error",
-        description: "Failed to fetch your forms",
+        description: "Failed to fetch your forms. Please try refreshing the page.",
         variant: "destructive",
       });
     } finally {
