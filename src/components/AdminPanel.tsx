@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ArrowLeft, FileText, Users, Eye } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface AdminPanelProps {
   onBack?: () => void;
@@ -35,11 +36,14 @@ const AdminPanel = ({ onBack }: AdminPanelProps) => {
   const [answers, setAnswers] = useState<Answer[]>([]);
   const [loading, setLoading] = useState(false);
   const [viewMode, setViewMode] = useState<'questions' | 'users'>('questions');
+  const { user } = useAuth();
   const { toast } = useToast();
 
   useEffect(() => {
-    fetchForms();
-  }, []);
+    if (user?.email) {
+      fetchForms();
+    }
+  }, [user?.email]);
 
   const fetchForms = async () => {
     setLoading(true);
@@ -47,6 +51,7 @@ const AdminPanel = ({ onBack }: AdminPanelProps) => {
       const { data, error } = await supabase
         .from('form')
         .select('form_id, title, description, creation_date')
+        .eq('user_id', user?.email)
         .order('creation_date', { ascending: false });
 
       if (error) throw error;
