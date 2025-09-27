@@ -95,7 +95,13 @@ const Index = () => {
           />
         )}
         {currentView === 'fill' && publicFormId && (
-          <PublicFormView formId={publicFormId} />
+          <PublicFormView 
+            formId={publicFormId} 
+            onReturnToMenu={() => {
+              setCurrentView('home');
+              setPublicFormId(null);
+            }}
+          />
         )}
         {currentView === 'admin' && (
           <div className="py-16">

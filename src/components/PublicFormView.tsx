@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Checkbox } from '@/components/ui/checkbox';
-import { useToast } from '@/hooks/use-toast';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ArrowLeft, Send, Edit, User } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 interface Question {
   question_id: string;
@@ -24,18 +26,29 @@ interface FormData {
 
 interface PublicFormViewProps {
   formId: string;
+  onReturnToMenu?: () => void;
 }
 
-const PublicFormView: React.FC<PublicFormViewProps> = ({ formId }) => {
+const PublicFormView: React.FC<PublicFormViewProps> = ({ formId, onReturnToMenu }) => {
   const [formData, setFormData] = useState<FormData | null>(null);
   const [answers, setAnswers] = useState<Record<string, any>>({});
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [userName, setUserName] = useState('');
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [hasSubmitted, setHasSubmitted] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
     fetchFormData();
   }, [formId]);
+
+  // Check for existing answers when userName changes
+  useEffect(() => {
+    if (userName.trim() && formData) {
+      checkExistingAnswers();
+    }
+  }, [userName, formData]);
 
   const fetchFormData = async () => {
     try {
@@ -92,6 +105,51 @@ const PublicFormView: React.FC<PublicFormViewProps> = ({ formId }) => {
     }
   };
 
+  const checkExistingAnswers = async () => {
+    if (!formData || !userName.trim()) return;
+
+    try {
+      // Check if user has already submitted answers for this form
+      const { data: existingAnswers, error } = await supabase
+        .from('answer')
+        .select('question_id, answer')
+        .in('question_id', formData.questions.map(q => q.question_id))
+        .ilike('answer', `%"userName":"${userName.trim()}"%`);
+
+      if (error) {
+        console.error('Error checking existing answers:', error);
+        return;
+      }
+
+      if (existingAnswers && existingAnswers.length > 0) {
+        // User has previous answers, load them
+        const previousAnswers: Record<string, any> = {};
+        existingAnswers.forEach(answer => {
+          try {
+            const parsedAnswer = JSON.parse(answer.answer);
+            if (parsedAnswer.userName === userName.trim()) {
+              previousAnswers[answer.question_id] = parsedAnswer.response;
+            }
+          } catch {
+            // If answer is not JSON, treat as direct answer
+            previousAnswers[answer.question_id] = answer.answer;
+          }
+        });
+
+        if (Object.keys(previousAnswers).length > 0) {
+          setAnswers(previousAnswers);
+          setIsEditMode(true);
+          toast({
+            title: "Previous answers found",
+            description: "Your previous answers have been loaded. You can modify them.",
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error checking existing answers:', error);
+    }
+  };
+
   const handleAnswerChange = (questionId: string, value: any) => {
     setAnswers(prev => ({
       ...prev,
@@ -100,14 +158,35 @@ const PublicFormView: React.FC<PublicFormViewProps> = ({ formId }) => {
   };
 
   const handleSubmit = async () => {
-    if (!formData) return;
+    if (!formData || !userName.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter your name before submitting.",
+        variant: "destructive",
+      });
+      return;
+    }
     
     setSubmitting(true);
     try {
-      // Submit answers to database
-      const answersToSubmit = Object.entries(answers).map(([questionId, answer]) => ({
+      // First, delete existing answers for this user if in edit mode
+      if (isEditMode) {
+        for (const question of formData.questions) {
+          await supabase
+            .from('answer')
+            .delete()
+            .eq('question_id', question.question_id)
+            .ilike('answer', `%"userName":"${userName.trim()}"%`);
+        }
+      }
+
+      // Submit new answers with userName
+      const answersToSubmit = Object.entries(answers).map(([questionId, response]) => ({
         question_id: questionId,
-        answer: typeof answer === 'string' ? answer : JSON.stringify(answer)
+        answer: JSON.stringify({
+          userName: userName.trim(),
+          response: response
+        })
       }));
 
       const { error } = await supabase
@@ -126,11 +205,11 @@ const PublicFormView: React.FC<PublicFormViewProps> = ({ formId }) => {
 
       toast({
         title: "Success!",
-        description: "Your answers have been submitted successfully.",
+        description: isEditMode ? "Your answers have been updated successfully." : "Your answers have been submitted successfully.",
       });
 
-      // Clear form
-      setAnswers({});
+      setHasSubmitted(true);
+      setIsEditMode(false);
       
     } catch (error) {
       console.error('Error submitting form:', error);
@@ -141,6 +220,15 @@ const PublicFormView: React.FC<PublicFormViewProps> = ({ formId }) => {
       });
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleReturnToMenu = () => {
+    if (onReturnToMenu) {
+      onReturnToMenu();
+    } else {
+      // Fallback: navigate to home
+      window.location.href = '/';
     }
   };
 
@@ -261,6 +349,12 @@ const PublicFormView: React.FC<PublicFormViewProps> = ({ formId }) => {
               The requested form could not be found or is no longer available.
             </CardDescription>
           </CardHeader>
+          <CardContent>
+            <Button onClick={handleReturnToMenu} variant="outline" className="w-full">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Return to Menu
+            </Button>
+          </CardContent>
         </Card>
       </div>
     );
@@ -269,6 +363,14 @@ const PublicFormView: React.FC<PublicFormViewProps> = ({ formId }) => {
   return (
     <div className="min-h-screen bg-gradient-subtle py-8">
       <div className="container mx-auto px-4 max-w-2xl">
+        {/* Return to Menu Button */}
+        <div className="mb-6">
+          <Button onClick={handleReturnToMenu} variant="outline" className="flex items-center gap-2">
+            <ArrowLeft className="w-4 h-4" />
+            Return to Menu
+          </Button>
+        </div>
+
         <Card>
           <CardHeader>
             <CardTitle>{formData.title}</CardTitle>
@@ -277,17 +379,56 @@ const PublicFormView: React.FC<PublicFormViewProps> = ({ formId }) => {
             )}
           </CardHeader>
           <CardContent className="space-y-6">
+            {/* Name Input */}
+            <div className="space-y-2 border-b pb-4">
+              <Label htmlFor="userName" className="flex items-center gap-2">
+                <User className="w-4 h-4" />
+                Your Name (required)
+              </Label>
+              <Input
+                id="userName"
+                value={userName}
+                onChange={(e) => setUserName(e.target.value)}
+                placeholder="Enter your name..."
+                className="max-w-md"
+              />
+              {userName.trim() && (
+                <p className="text-xs text-muted-foreground">
+                  💡 You can modify your previous answers using your name as the key
+                </p>
+              )}
+              {isEditMode && (
+                <div className="flex items-center gap-2 text-sm text-amber-600">
+                  <Edit className="w-4 h-4" />
+                  Editing mode: Your previous answers have been loaded
+                </div>
+              )}
+            </div>
+
+            {/* Questions */}
             {formData.questions.map((question) => renderQuestion(question))}
             
             {formData.questions.length > 0 && (
-              <div className="pt-4">
+              <div className="pt-4 space-y-3">
                 <Button 
                   onClick={handleSubmit} 
-                  disabled={submitting}
-                  className="w-full"
+                  disabled={submitting || !userName.trim()}
+                  className="w-full flex items-center gap-2"
                 >
-                  {submitting ? 'Submitting...' : 'Submit Form'}
+                  <Send className="w-4 h-4" />
+                  {submitting ? 'Submitting...' : isEditMode ? 'Update Answers' : 'Submit Form'}
                 </Button>
+                
+                {hasSubmitted && (
+                  <div className="text-center p-4 bg-green-50 rounded-lg border border-green-200">
+                    <p className="text-green-700 font-medium">
+                      ✅ Thank you! Your answers have been {isEditMode ? 'updated' : 'submitted'} successfully.
+                    </p>
+                    <p className="text-sm text-green-600 mt-1">
+                      You can return anytime with your name to modify your answers.
+                    </p>
+                  </div>
+                )}
               </div>
             )}
             
