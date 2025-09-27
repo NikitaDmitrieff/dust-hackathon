@@ -6,7 +6,7 @@ interface HeroSectionProps {
 
 const HeroSection = ({ onAction }: HeroSectionProps) => {
   return (
-    <div className="min-h-screen bg-gradient-hero flex flex-col items-center justify-center px-4">
+    <div className="py-16 flex flex-col items-center justify-center px-4">
       <div className="max-w-4xl mx-auto text-center space-y-8">
         {/* Hero Text */}
         <div className="space-y-6">
@@ -20,7 +20,7 @@ const HeroSection = ({ onAction }: HeroSectionProps) => {
           </p>
         </div>
 
-        {/* Three Action Buttons */}
+        {/* Two Main Action Buttons */}
         <div className="flex flex-col md:flex-row gap-6 justify-center items-center pt-8">
           <Button 
             variant="hero" 
@@ -32,15 +32,6 @@ const HeroSection = ({ onAction }: HeroSectionProps) => {
           </Button>
           
           <Button 
-            variant="elegant" 
-            size="xl"
-            onClick={() => onAction('fill')}
-            className="w-full md:w-auto min-w-[200px]"
-          >
-            Fill Forms
-          </Button>
-          
-          <Button 
             variant="minimal" 
             size="xl"
             onClick={() => onAction('admin')}
@@ -48,6 +39,13 @@ const HeroSection = ({ onAction }: HeroSectionProps) => {
           >
             Admin Panel
           </Button>
+        </div>
+
+        {/* Helper Text */}
+        <div className="pt-4">
+          <p className="text-sm text-muted-foreground">
+            Share your forms with a simple link • No accounts needed for respondents
+          </p>
         </div>
 
         {/* Subtle Feature Points */}

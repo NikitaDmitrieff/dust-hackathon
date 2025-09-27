@@ -127,16 +127,8 @@ const FormBuilder = ({ onBack }: FormBuilderProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-subtle p-4">
+    <div className="p-4">
       <div className="max-w-4xl mx-auto space-y-8">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <Button variant="ghost" onClick={onBack}>
-            ← Back
-          </Button>
-          <h1 className="text-3xl font-bold font-display">Create Form</h1>
-          <div></div>
-        </div>
 
         {/* Form Builder */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">

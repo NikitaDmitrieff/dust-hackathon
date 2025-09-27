@@ -216,10 +216,11 @@ const PublicForm = () => {
         </Card>
 
         {/* Footer */}
-        <div className="text-center">
-          <p className="text-sm text-muted-foreground">
-            Powered by <span className="font-semibold text-primary">Scribe Form</span>
-          </p>
+        <div className="text-center pt-8">
+          <div className="inline-flex items-center gap-2 text-xs text-muted-foreground bg-muted/30 px-3 py-2 rounded-full">
+            <div className="w-3 h-3 bg-primary/20 rounded-sm"></div>
+            <span>Powered by Scribe Form</span>
+          </div>
         </div>
       </div>
     </div>
