@@ -6,6 +6,8 @@ export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [authError, setAuthError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
     // Set up auth state listener
@@ -36,6 +38,8 @@ export function useAuth() {
   const signInAnonymously = async () => {
     try {
       setLoading(true);
+      setAuthError(null);
+      
       const { data, error } = await supabase.auth.signInAnonymously({
         options: {
           data: {
@@ -45,7 +49,18 @@ export function useAuth() {
         }
       });
       
-      if (error) throw error;
+      if (error) {
+        // Handle rate limiting specifically
+        if (error.message?.includes('rate limit') || error.status === 429) {
+          setAuthError('Rate limited. Please wait a moment and try again.');
+          setRetryCount(prev => prev + 1);
+        } else {
+          setAuthError(error.message || 'Authentication failed');
+        }
+        throw error;
+      }
+      
+      setRetryCount(0);
       return { user: data.user, error: null };
     } catch (error) {
       console.error('Error signing in anonymously:', error);
@@ -91,6 +106,8 @@ export function useAuth() {
     user,
     session,
     loading,
+    authError,
+    retryCount,
     signInAnonymously,
     signOut,
     upgradeToEmailAccount,
