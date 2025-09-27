@@ -1,11 +1,10 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { useSimpleAuth } from "@/contexts/SimpleAuthContext";
+import { useNavigate, Link } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import AppHeader from "@/components/AppHeader";
 import HeroSection from "@/components/HeroSection";
 import FormBuilder from "@/components/FormBuilder";
 import AdminPanel from "@/components/AdminPanel";
-import LoginCard from "@/components/LoginCard";
 import PublicFormView from "@/components/PublicFormView";
 import CodeEntry from "@/components/CodeEntry";
 import FormsGrid from "@/components/FormsGrid";
@@ -14,7 +13,7 @@ type AppView = 'home' | 'create' | 'admin' | 'enter-code' | 'fill';
 
 const Index = () => {
   const navigate = useNavigate();
-  const { userEmail, loading } = useSimpleAuth();
+  const { user } = useAuth();
   const [currentView, setCurrentView] = useState<AppView>('home');
   const [publicFormId, setPublicFormId] = useState<string | null>(null);
   const [editingFormId, setEditingFormId] = useState<string | null>(null);
@@ -52,25 +51,13 @@ const Index = () => {
     navigate(`/dashboard/${formId}`);
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-subtle flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-muted-foreground">Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
   // If there's a public form ID, show the public form view regardless of auth
   if (publicFormId) {
     return <PublicFormView formId={publicFormId} />;
   }
 
-  if (!userEmail) {
-    return <LoginCard />;
-  }
+  // Authentication is handled at the App level
+  // Users will be redirected to /auth if not logged in
 
   return (
     <div className="min-h-screen bg-gradient-subtle">

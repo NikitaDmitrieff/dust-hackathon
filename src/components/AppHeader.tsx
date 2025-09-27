@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/contexts/AuthContext";
+import { LogOut, User } from "lucide-react";
 
 interface AppHeaderProps {
   currentView: string;
@@ -7,7 +8,7 @@ interface AppHeaderProps {
 }
 
 const AppHeader = ({ currentView, onAction }: AppHeaderProps) => {
-  const { user, signOut, isAnonymous } = useAuth();
+  const { user, signOut } = useAuth();
 
   return (
     <header className="bg-background/95 backdrop-blur-sm border-b border-border/10 sticky top-0 z-50">
@@ -41,24 +42,24 @@ const AppHeader = ({ currentView, onAction }: AppHeaderProps) => {
           )}
 
           {/* User Info */}
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            {isAnonymous ? (
-              <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">
-                Anonymous Session
-              </span>
-            ) : (
-              <span>{user?.email}</span>
-            )}
-            
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={signOut}
-              className="text-xs h-6 px-2"
-            >
-              Reset
-            </Button>
-          </div>
+          {user && (
+            <div className="flex items-center gap-2 text-sm">
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <User className="w-4 h-4" />
+                <span>{user.email}</span>
+              </div>
+              
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={signOut}
+                className="text-xs h-8 px-2 flex items-center gap-1"
+              >
+                <LogOut className="w-3 h-3" />
+                Sign Out
+              </Button>
+            </div>
+          )}
         </div>
       </div>
     </header>
