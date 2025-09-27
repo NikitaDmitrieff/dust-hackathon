@@ -28,12 +28,20 @@ export const SimpleAuthProvider = ({ children }: { children: React.ReactNode }) 
   const setDatabaseUserEmail = async (email: string) => {
     try {
       // Set the user email in the database session for RLS policies
-      await supabase.rpc('set_config', {
+      const { data, error } = await supabase.rpc('set_config', {
         setting_name: 'app.user_email',
         setting_value: email
       });
+      
+      if (error) {
+        console.error('Error setting database user email:', error);
+        throw error;
+      }
+      
+      console.log('Database session set for:', email);
     } catch (error) {
       console.error('Error setting database user email:', error);
+      throw error;
     }
   };
 
@@ -46,7 +54,7 @@ export const SimpleAuthProvider = ({ children }: { children: React.ReactNode }) 
         throw new Error('Please enter a valid email address');
       }
 
-      // Create user if doesn't exist
+      // Create user if doesn't exist  
       const { error: insertError } = await supabase
         .from('simple_users')
         .upsert({ 
@@ -56,12 +64,19 @@ export const SimpleAuthProvider = ({ children }: { children: React.ReactNode }) 
           onConflict: 'email'
         });
 
+      if (insertError) {
+        console.log('User upsert info:', insertError); // This might not be an error, just info
+      }
+
       // Store email locally and in app state
-      localStorage.setItem('userEmail', email.toLowerCase().trim());
-      setUserEmail(email.toLowerCase().trim());
+      const normalizedEmail = email.toLowerCase().trim();
+      localStorage.setItem('userEmail', normalizedEmail);
+      setUserEmail(normalizedEmail);
       
-      // Set the email in the database connection for RLS
-      await setDatabaseUserEmail(email.toLowerCase().trim());
+      // Set the email in the database connection for RLS - this is critical!
+      await setDatabaseUserEmail(normalizedEmail);
+      
+      console.log('Successfully logged in as:', normalizedEmail);
     } catch (error) {
       console.error('Login error:', error);
       throw error;
@@ -73,6 +88,8 @@ export const SimpleAuthProvider = ({ children }: { children: React.ReactNode }) 
   const logout = () => {
     localStorage.removeItem('userEmail');
     setUserEmail(null);
+    // Clear the database session
+    setDatabaseUserEmail('').catch(console.error);
   };
 
   return (

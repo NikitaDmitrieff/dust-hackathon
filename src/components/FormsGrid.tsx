@@ -34,12 +34,16 @@ const FormsGrid = ({ onEditForm, onViewDashboard }: FormsGridProps) => {
 
   const fetchUserForms = async () => {
     try {
+      console.log('Fetching forms for user:', userEmail);
+      
       // Fetch forms where user_id matches the current user's email
       const { data, error } = await supabase
         .from('form')
         .select('form_id, title, description, creation_date')
         .eq('user_id', userEmail)
         .order('creation_date', { ascending: false });
+
+      console.log('Forms query result:', { data, error, userEmail });
 
       if (error) {
         console.error('Error fetching forms:', error);
