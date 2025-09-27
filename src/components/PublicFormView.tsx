@@ -158,14 +158,17 @@ const PublicFormView: React.FC<PublicFormViewProps> = ({ formId, onReturnToMenu 
   };
 
   const handleSubmit = async () => {
-    if (!formData || !userName.trim()) {
+    if (!formData) {
       toast({
         title: "Error",
-        description: "Please enter your name before submitting.",
+        description: "Unable to submit form.",
         variant: "destructive",
       });
       return;
     }
+
+    // Generate random user ID if no name provided
+    const userIdentifier = userName.trim() || `user_${Math.floor(Math.random() * 10000)}`;
     
     setSubmitting(true);
     try {
@@ -176,7 +179,7 @@ const PublicFormView: React.FC<PublicFormViewProps> = ({ formId, onReturnToMenu 
             .from('answer')
             .delete()
             .eq('question_id', question.question_id)
-            .ilike('answer', `%"userName":"${userName.trim()}"%`);
+            .ilike('answer', `%"userName":"${userIdentifier}"%`);
         }
       }
 
@@ -184,7 +187,7 @@ const PublicFormView: React.FC<PublicFormViewProps> = ({ formId, onReturnToMenu 
       const answersToSubmit = Object.entries(answers).map(([questionId, response]) => ({
         question_id: questionId,
         answer: JSON.stringify({
-          userName: userName.trim(),
+          userName: userIdentifier,
           response: response
         })
       }));
@@ -210,6 +213,11 @@ const PublicFormView: React.FC<PublicFormViewProps> = ({ formId, onReturnToMenu 
 
       setHasSubmitted(true);
       setIsEditMode(false);
+      
+      // Navigate back to main page after 2 seconds
+      setTimeout(() => {
+        handleReturnToMenu();
+      }, 2000);
       
     } catch (error) {
       console.error('Error submitting form:', error);
@@ -383,7 +391,7 @@ const PublicFormView: React.FC<PublicFormViewProps> = ({ formId, onReturnToMenu 
             <div className="space-y-2 border-b pb-4">
               <Label htmlFor="userName" className="flex items-center gap-2">
                 <User className="w-4 h-4" />
-                Your Name (required)
+                Your Name (optional)
               </Label>
               <Input
                 id="userName"
@@ -412,7 +420,7 @@ const PublicFormView: React.FC<PublicFormViewProps> = ({ formId, onReturnToMenu 
               <div className="pt-4 space-y-3">
                 <Button 
                   onClick={handleSubmit} 
-                  disabled={submitting || !userName.trim()}
+                  disabled={submitting}
                   className="w-full flex items-center gap-2"
                 >
                   <Send className="w-4 h-4" />
