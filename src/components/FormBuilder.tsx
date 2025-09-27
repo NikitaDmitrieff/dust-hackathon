@@ -88,15 +88,6 @@ const FormBuilder = ({ onBack }: FormBuilderProps) => {
   };
 
   const publishForm = async () => {
-    if (!userEmail) {
-      toast({
-        title: "Error",
-        description: "You must be logged in to publish a form.",
-        variant: "destructive",
-      });
-      return;
-    }
-
     if (!formTitle.trim()) {
       toast({
         title: "Error",
@@ -117,25 +108,19 @@ const FormBuilder = ({ onBack }: FormBuilderProps) => {
 
     setIsPublishing(true);
     try {
-      // Ensure database session is properly set
-      console.log('Setting database session for:', userEmail);
-      await supabase.rpc('set_config', {
-        setting_name: 'app.user_email',
-        setting_value: userEmail
+      console.log('Creating form with data:', { 
+        title: formTitle.trim(), 
+        description: formDescription.trim() || null,
+        user_id: userEmail || 'anonymous'
       });
-
-      // Small delay to ensure RLS is properly set
-      await new Promise(resolve => setTimeout(resolve, 100));
-
-      // Create form
-      console.log('Creating form with data:', { title: formTitle.trim(), description: formDescription.trim() || null, user_id: userEmail });
       
+      // Create form
       const { data: formData, error: formError } = await supabase
         .from('form')
         .insert({
           title: formTitle.trim(),
           description: formDescription.trim() || null,
-          user_id: userEmail
+          user_id: userEmail || 'anonymous'
         })
         .select('form_id')
         .single();
@@ -170,7 +155,7 @@ const FormBuilder = ({ onBack }: FormBuilderProps) => {
       
       toast({
         title: "Success!",
-        description: "Your form has been published successfully.",
+        description: `Your form code is: ${formData.form_id}`,
       });
 
     } catch (error) {
@@ -303,7 +288,7 @@ const FormBuilder = ({ onBack }: FormBuilderProps) => {
               size="lg"
             >
               <Zap className="w-5 h-5" />
-              {isPublishing ? 'Publishing...' : 'Publish and Get Final Link'}
+              {isPublishing ? 'Publishing...' : 'Publish and Get Code'}
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent transform -skew-x-12 animate-pulse opacity-0 hover:opacity-100 transition-opacity duration-300"></div>
             </Button>
           </div>
@@ -475,32 +460,64 @@ const FormBuilder = ({ onBack }: FormBuilderProps) => {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Link className="w-5 h-5 text-primary" />
-              Your Form is Published!
+              Your Form Code is Ready!
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <div className="flex items-center space-x-2">
-              <div className="flex-1 p-3 bg-muted rounded-lg border">
-                <code className="text-sm text-foreground break-all">
-                  {publishedFormId ? `${window.location.origin}/?id=${publishedFormId}` : ''}
-                </code>
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-foreground">Form Code:</p>
+              <div className="flex items-center space-x-2">
+                <div className="flex-1 p-3 bg-muted rounded-lg border">
+                  <code className="text-lg font-mono text-foreground break-all">
+                    {publishedFormId || ''}
+                  </code>
+                </div>
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    if (publishedFormId) {
+                      navigator.clipboard.writeText(publishedFormId);
+                      setIsCopied(true);
+                      toast({
+                        title: "Copied!",
+                        description: "Form code copied to clipboard",
+                      });
+                      setTimeout(() => setIsCopied(false), 2000);
+                    }
+                  }}
+                  className="flex items-center gap-2 px-3"
+                >
+                  {isCopied ? (
+                    <Check className="w-4 h-4 text-green-500" />
+                  ) : (
+                    <Copy className="w-4 h-4" />
+                  )}
+                  {isCopied ? 'Copied!' : 'Copy'}
+                </Button>
               </div>
-              <Button
-                size="sm"
-                onClick={copyFormLink}
-                className="flex items-center gap-2 px-3"
-              >
-                {isCopied ? (
-                  <Check className="w-4 h-4 text-green-500" />
-                ) : (
+            </div>
+            
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-foreground">Form Link:</p>
+              <div className="flex items-center space-x-2">
+                <div className="flex-1 p-3 bg-muted rounded-lg border">
+                  <code className="text-sm text-foreground break-all">
+                    {publishedFormId ? `${window.location.origin}/?id=${publishedFormId}` : ''}
+                  </code>
+                </div>
+                <Button
+                  size="sm"
+                  onClick={copyFormLink}
+                  className="flex items-center gap-2 px-3"
+                >
                   <Copy className="w-4 h-4" />
-                )}
-                {isCopied ? 'Copied!' : 'Copy'}
-              </Button>
+                  Copy Link
+                </Button>
+              </div>
             </div>
             
             <p className="text-sm text-muted-foreground">
-              Share this link to collect responses for your form. You can view the form dashboard from your forms list.
+              Share the code or link to collect responses for your form.
             </p>
           </div>
         </DialogContent>
