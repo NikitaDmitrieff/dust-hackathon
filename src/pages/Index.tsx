@@ -4,11 +4,14 @@ import AppHeader from "@/components/AppHeader";
 import HeroSection from "@/components/HeroSection";
 import FormBuilder from "@/components/FormBuilder";
 import AdminPanel from "@/components/AdminPanel";
+import SimpleLogin from "@/components/SimpleLogin";
+import { useSimpleAuth } from "@/hooks/useSimpleAuth";
 
 type AppView = 'home' | 'create' | 'admin';
 
 const Index = () => {
   const navigate = useNavigate();
+  const { isSignedIn } = useSimpleAuth();
   const [currentView, setCurrentView] = useState<AppView>('home');
 
   const handleAction = (action: 'create' | 'fill' | 'admin' | 'home') => {
@@ -32,6 +35,10 @@ const Index = () => {
   const handleViewDashboard = (formId: string) => {
     navigate(`/dashboard/${formId}`);
   };
+
+  if (!isSignedIn) {
+    return <SimpleLogin />;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-subtle">

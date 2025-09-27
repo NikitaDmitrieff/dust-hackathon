@@ -1,5 +1,7 @@
 import { Button } from "@/components/ui/button";
+import { LogOut } from "lucide-react";
 import FormsGrid from "@/components/FormsGrid";
+import { useSimpleAuth } from "@/hooks/useSimpleAuth";
 
 interface HeroSectionProps {
   onAction: (action: 'create' | 'fill' | 'admin') => void;
@@ -8,9 +10,32 @@ interface HeroSectionProps {
 }
 
 const HeroSection = ({ onAction, onEditForm, onViewDashboard }: HeroSectionProps) => {
+  const { userEmail, signOut } = useSimpleAuth();
+
+  const handleSignOut = () => {
+    signOut();
+  };
   return (
     <div className="py-16 flex flex-col items-center justify-center px-4">
       <div className="max-w-4xl mx-auto text-center space-y-8">
+        {/* User Info and Sign Out */}
+        {userEmail && (
+          <div className="flex justify-center items-center gap-4 mb-6">
+            <span className="text-sm text-muted-foreground">
+              Signed in as: {userEmail}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleSignOut}
+              className="flex items-center gap-2"
+            >
+              <LogOut className="w-4 h-4" />
+              Sign Out
+            </Button>
+          </div>
+        )}
+
         {/* Hero Text */}
         <div className="space-y-6">
           <h1 className="text-6xl md:text-7xl font-bold font-display tracking-tight text-foreground">
