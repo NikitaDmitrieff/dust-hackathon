@@ -50,9 +50,14 @@ const HeroSection = ({ onAction, onEditForm, onViewDashboard }: HeroSectionProps
             Share your forms with a simple link • No accounts needed for respondents
           </p>
         </div>
+      </div>
+      
+      {/* Forms Grid */}
+      <FormsGrid onEditForm={onEditForm} onViewDashboard={onViewDashboard} />
 
-        {/* Subtle Feature Points */}
-        <div className="pt-16 grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+      {/* Subtle Feature Points */}
+      <div className="max-w-4xl mx-auto px-4 pb-16">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
           <div className="space-y-2">
             <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mx-auto">
               <div className="w-6 h-6 bg-primary rounded-sm"></div>
@@ -84,9 +89,6 @@ const HeroSection = ({ onAction, onEditForm, onViewDashboard }: HeroSectionProps
           </div>
         </div>
       </div>
-      
-      {/* Forms Grid */}
-      <FormsGrid onEditForm={onEditForm} onViewDashboard={onViewDashboard} />
     </div>
   );
 };
