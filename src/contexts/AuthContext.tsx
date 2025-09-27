@@ -1,10 +1,9 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
 interface AuthContextType {
-  user: User | null;
-  session: Session | null;
+  user: { email: string } | null;
+  session: { user: { email: string } } | null;
   loading: boolean;
   signOut: () => Promise<void>;
 }
@@ -20,52 +19,35 @@ export const useAuth = () => {
 };
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
+  const [user, setUser] = useState<{ email: string } | null>(null);
+  const [session, setSession] = useState<{ user: { email: string } } | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Set up auth state listener FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
+    // Check for stored email
+    const checkStoredEmail = async () => {
+      const storedEmail = localStorage.getItem('user_email');
+      if (storedEmail) {
+        const userObj = { email: storedEmail };
+        setUser(userObj);
+        setSession({ user: userObj });
         
         // Set user email in Supabase config for RLS
-        if (session?.user?.email) {
-          setTimeout(() => {
-            supabase.rpc('set_config', {
-              setting_name: 'app.user_email',
-              setting_value: session.user.email
-            });
-          }, 0);
-        }
-        
-        setLoading(false);
-      }
-    );
-
-    // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      
-      // Set user email in Supabase config for RLS
-      if (session?.user?.email) {
-        supabase.rpc('set_config', {
+        await supabase.rpc('set_config', {
           setting_name: 'app.user_email',
-          setting_value: session.user.email
+          setting_value: storedEmail
         });
       }
-      
       setLoading(false);
-    });
+    };
 
-    return () => subscription.unsubscribe();
+    checkStoredEmail();
   }, []);
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    localStorage.removeItem('user_email');
+    setUser(null);
+    setSession(null);
   };
 
   const value = {
