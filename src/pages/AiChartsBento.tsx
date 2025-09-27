@@ -78,6 +78,13 @@ const AiChartsBento: React.FC = () => {
     }
   }, []);
 
+  // Auto-generate charts when component mounts (if not demo mode)
+  useEffect(() => {
+    if (!isDemoMode && !isLoading && results.length === 0) {
+      autoGenerateCharts();
+    }
+  }, [isDemoMode]);
+
   // Save history to localStorage
   const saveToHistory = (query: string) => {
     const existingItem = history.find(h => h.query === query);
@@ -100,6 +107,71 @@ const AiChartsBento: React.FC = () => {
     
     setHistory(newHistory);
     localStorage.setItem('aiCharts.history', JSON.stringify(newHistory));
+  };
+
+  // Auto-generate charts based on form data
+  const autoGenerateCharts = async () => {
+    setIsLoading(true);
+    
+    try {
+      // Get form ID from URL
+      const pathSegments = window.location.pathname.split('/');
+      const formId = pathSegments[pathSegments.length - 1];
+      
+      if (!formId || formId === 'ai-charts') {
+        console.log('No form ID found, skipping auto-generation');
+        return;
+      }
+
+      console.log('Auto-generating charts for form:', formId);
+
+      // Call the AI Charts API with auto-analysis request
+      const response = await fetch('/functions/v1/ai-charts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          formId: formId,
+          autoAnalyze: true 
+        }),
+      });
+
+      if (!response.ok) {
+        console.log('API call failed, falling back to demo mode');
+        setIsDemoMode(true);
+        setResults(mockResults.results);
+        toast({
+          title: "Demo Mode",
+          description: "Showing sample charts while the backend is being set up",
+        });
+        return;
+      }
+
+      const data: AiChartsResponse = await response.json();
+      setResults(data.results || []);
+      
+      toast({
+        title: "Analyse automatique terminée !",
+        description: `${data.results?.length || 0} visualisation(s) générée(s) automatiquement`,
+      });
+
+      // Add to history
+      const autoQuery = "Analyse automatique des données du formulaire";
+      saveToHistory(autoQuery);
+      
+    } catch (error) {
+      console.error('Error auto-generating charts:', error);
+      console.log('Fallback to demo mode due to error');
+      setIsDemoMode(true);
+      setResults(mockResults.results);
+      toast({
+        title: "Mode démo activé",
+        description: "Affichage des données de démonstration",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // Toggle pin status
@@ -472,7 +544,9 @@ const AiChartsBento: React.FC = () => {
         {(results.length > 0 || isLoading) && (
           <div className="space-y-6">
             <div className="flex items-center gap-3">
-              <h2 className="text-2xl font-bold">Résultats</h2>
+              <h2 className="text-2xl font-bold">
+                {results.length > 0 && !isLoading ? 'Analyse Automatique' : 'Génération en cours...'}
+              </h2>
               {results.length > 0 && (
                 <Badge variant="outline">
                   {results.length} graphique{results.length > 1 ? 's' : ''}
@@ -517,13 +591,13 @@ const AiChartsBento: React.FC = () => {
               <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
                 <BarChart3 className="w-8 h-8 text-primary" />
               </div>
-              <h3 className="text-lg font-semibold mb-2">Prêt à analyser vos données</h3>
+              <h3 className="text-lg font-semibold mb-2">Analyse en cours...</h3>
               <p className="text-muted-foreground max-w-md mx-auto mb-4">
-                Posez une question sur vos données et notre IA générera automatiquement 
-                les visualisations les plus pertinentes pour vous aider à prendre des décisions.
+                L'IA analyse automatiquement les données de votre formulaire pour générer 
+                les visualisations les plus pertinentes.
               </p>
               <p className="text-sm text-muted-foreground">
-                <strong>Astuce :</strong> activez le Mode démo pour un aperçu instantané.
+                <strong>Astuce :</strong> activez le Mode démo pour voir un exemple avec des données factices.
               </p>
             </div>
           )}

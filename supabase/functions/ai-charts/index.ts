@@ -1,27 +1,144 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
+const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-serve(async (req) => {
-  // Handle CORS preflight requests
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
-
+// Handle automatic form analysis
+async function handleAutoAnalysis(formId: string) {
   try {
-    const { question } = await req.json();
+    console.log('Starting auto-analysis for form:', formId);
+    
+    // Fetch form details
+    const { data: form, error: formError } = await supabase
+      .from('form')
+      .select('title, description')
+      .eq('form_id', formId)
+      .single();
+    
+    if (formError) {
+      console.error('Error fetching form:', formError);
+      throw new Error(`Form not found: ${formError.message}`);
+    }
+    
+    // Fetch questions for this form
+    const { data: questions, error: questionsError } = await supabase
+      .from('question')
+      .select('question_id, question, type_answer')
+      .eq('form_id', formId);
+    
+    if (questionsError) {
+      console.error('Error fetching questions:', questionsError);
+      throw new Error(`Questions not found: ${questionsError.message}`);
+    }
+    
+    // Fetch answers for all questions
+    const questionIds = questions.map(q => q.question_id);
+    const { data: answers, error: answersError } = await supabase
+      .from('answer')
+      .select('question_id, answer')
+      .in('question_id', questionIds);
+    
+    if (answersError) {
+      console.error('Error fetching answers:', answersError);
+      throw new Error(`Answers not found: ${answersError.message}`);
+    }
+    
+    console.log(`Found ${questions.length} questions and ${answers.length} answers`);
+    
+    // Group answers by question
+    const questionData = questions.map(question => {
+      const questionAnswers = answers.filter(a => a.question_id === question.question_id);
+      return {
+        question: question.question,
+        type: question.type_answer,
+        answers: questionAnswers.map(a => a.answer),
+        answerCount: questionAnswers.length
+      };
+    });
+    
+    // Create analysis prompt
+    const analysisPrompt = `Analyse automatique du formulaire "${form.title}"
+    
+Description: ${form.description || 'Aucune description'}
 
-    if (!question) {
-      throw new Error('Question is required');
+Questions et réponses collectées:
+${questionData.map((q, i) => `
+${i + 1}. Question: "${q.question}" (Type: ${q.type})
+   Nombre de réponses: ${q.answerCount}
+   Échantillon de réponses: ${q.answers.slice(0, 10).join(', ')}
+`).join('')}
+
+Génère automatiquement 2-4 graphiques d'analyse les plus pertinents pour ce formulaire.
+Concentre-toi sur:
+- Distribution des réponses pour les questions à choix multiple
+- Tendances temporelles si applicable
+- Comparaisons entre catégories
+- Corrélations intéressantes
+
+Utilise les vraies données des réponses pour créer les graphiques.`;
+
+    console.log('Sending analysis prompt to OpenAI...');
+    
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${openAIApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        messages: [
+          { role: 'system', content: getSystemPrompt() },
+          { role: 'user', content: analysisPrompt }
+        ],
+        temperature: 0.7,
+        max_tokens: 3000,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('OpenAI API Error:', errorData);
+      throw new Error(`OpenAI API Error: ${errorData.error?.message || 'Unknown error'}`);
     }
 
-    const systemPrompt = `Tu es un expert en analyse de données. Génère des spécifications de graphiques basées sur les questions des utilisateurs.
+    const data = await response.json();
+    const generatedText = data.choices[0].message.content;
+
+    try {
+      const jsonResponse = JSON.parse(generatedText);
+      return new Response(JSON.stringify(jsonResponse), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    } catch (parseError) {
+      console.error('Failed to parse GPT response:', generatedText);
+      throw new Error('Failed to parse AI response');
+    }
+    
+  } catch (error) {
+    console.error('Error in auto-analysis:', error);
+    return new Response(JSON.stringify({ 
+      error: error instanceof Error ? error.message : 'Unknown error',
+      details: 'Erreur lors de l\'analyse automatique'
+    }), {
+      status: 500,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+}
+
+function getSystemPrompt() {
+  return `Tu es un expert en analyse de données. Génère des spécifications de graphiques basées sur les questions des utilisateurs.
 
 Réponds UNIQUEMENT avec un JSON valide dans ce format exact:
 {
@@ -53,6 +170,27 @@ Règles importantes:
 - Les dates doivent être au format ISO
 - Limite à 30 lignes maximum
 - Ajoute 2-3 insights pertinents dans notes`;
+}
+
+serve(async (req) => {
+  // Handle CORS preflight requests
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  try {
+    const { question, formId, autoAnalyze } = await req.json();
+
+    // Handle automatic form analysis
+    if (autoAnalyze && formId) {
+      return await handleAutoAnalysis(formId);
+    }
+
+    if (!question) {
+      throw new Error('Question is required');
+    }
+
+    const systemPrompt = getSystemPrompt();
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
