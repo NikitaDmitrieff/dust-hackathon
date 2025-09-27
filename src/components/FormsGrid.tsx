@@ -69,7 +69,7 @@ const FormsGrid = ({ onEditForm, onViewDashboard }: FormsGridProps) => {
   };
 
   const copyFormLink = (formId: string) => {
-    const formUrl = `${window.location.origin}/form/${formId}`;
+    const formUrl = `${window.location.origin}/?id=${formId}`;
     navigator.clipboard.writeText(formUrl);
     toast({
       title: "Copied!",

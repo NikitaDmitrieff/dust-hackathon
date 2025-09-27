@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSimpleAuth } from "@/contexts/SimpleAuthContext";
 import AppHeader from "@/components/AppHeader";
@@ -6,6 +6,7 @@ import HeroSection from "@/components/HeroSection";
 import FormBuilder from "@/components/FormBuilder";
 import AdminPanel from "@/components/AdminPanel";
 import LoginCard from "@/components/LoginCard";
+import PublicFormView from "@/components/PublicFormView";
 
 type AppView = 'home' | 'create' | 'admin';
 
@@ -13,6 +14,19 @@ const Index = () => {
   const navigate = useNavigate();
   const { userEmail, loading } = useSimpleAuth();
   const [currentView, setCurrentView] = useState<AppView>('home');
+  const [publicFormId, setPublicFormId] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Check for URL parameters when component mounts
+    const queryString = window.location.search;
+    const urlParams = new URLSearchParams(queryString);
+    const questionnaireId = urlParams.get('id');
+    
+    if (questionnaireId) {
+      console.log("This is for questionnaire:", questionnaireId);
+      setPublicFormId(questionnaireId);
+    }
+  }, []);
 
   const handleAction = (action: 'create' | 'fill' | 'admin' | 'home') => {
     if (action === 'fill') {
@@ -45,6 +59,11 @@ const Index = () => {
         </div>
       </div>
     );
+  }
+
+  // If there's a public form ID, show the public form view regardless of auth
+  if (publicFormId) {
+    return <PublicFormView formId={publicFormId} />;
   }
 
   if (!userEmail) {
