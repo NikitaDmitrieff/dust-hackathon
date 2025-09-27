@@ -10,7 +10,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Plus, Trash2, MoveUp, MoveDown, Copy, Link, Check, Sparkles, Zap } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { useSimpleAuth } from '@/contexts/SimpleAuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 
 interface Question {
@@ -27,7 +27,7 @@ interface FormBuilderProps {
 }
 
 const FormBuilder = ({ onBack, editingFormId }: FormBuilderProps) => {
-  const { userEmail } = useSimpleAuth();
+  const { user } = useAuth();
   const { toast } = useToast();
   
   const [formTitle, setFormTitle] = useState('');
@@ -235,7 +235,7 @@ const FormBuilder = ({ onBack, editingFormId }: FormBuilderProps) => {
         console.log('Creating form with data:', { 
           title: formTitle.trim(), 
           description: formDescription.trim() || null,
-          user_id: userEmail || 'anonymous'
+          user_id: user?.email || 'anonymous'
         });
         
         // Create form
@@ -244,7 +244,7 @@ const FormBuilder = ({ onBack, editingFormId }: FormBuilderProps) => {
           .insert({
             title: formTitle.trim(),
             description: formDescription.trim() || null,
-            user_id: userEmail || 'anonymous'
+            user_id: user?.email || 'anonymous'
           })
           .select('form_id')
           .single();

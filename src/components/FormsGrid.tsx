@@ -5,7 +5,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { ExternalLink, Edit, BarChart3, FileText, Trash2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { useSimpleAuth } from '@/contexts/SimpleAuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface Form {
   form_id: string;
@@ -24,19 +24,19 @@ const FormsGrid = ({ onEditForm, onViewDashboard }: FormsGridProps) => {
   const [loading, setLoading] = useState(true);
   const [deleteFormId, setDeleteFormId] = useState<string | null>(null);
   const { toast } = useToast();
-  const { userEmail } = useSimpleAuth();
+  const { user } = useAuth();
 
   useEffect(() => {
-    if (userEmail) {
+    if (user?.email) {
       fetchUserForms();
     } else {
       setLoading(false);
     }
-  }, [userEmail]);
+  }, [user?.email]);
 
   const fetchUserForms = async () => {
     try {
-      console.log('Fetching forms for user:', userEmail);
+      console.log('Fetching forms for user:', user?.email);
       
       // Ensure RLS is properly set before querying
       await new Promise(resolve => setTimeout(resolve, 100)); // Small delay for RLS to be set
@@ -45,10 +45,10 @@ const FormsGrid = ({ onEditForm, onViewDashboard }: FormsGridProps) => {
       const { data, error } = await supabase
         .from('form')
         .select('form_id, title, description, creation_date')
-        .eq('user_id', userEmail)
+        .eq('user_id', user?.email)
         .order('creation_date', { ascending: false });
 
-      console.log('Forms query result:', { data, error, userEmail });
+      console.log('Forms query result:', { data, error, userEmail: user?.email });
 
       if (error) {
         console.error('Error fetching forms:', error);
@@ -58,7 +58,7 @@ const FormsGrid = ({ onEditForm, onViewDashboard }: FormsGridProps) => {
         const { data: retryData, error: retryError } = await supabase
           .from('form')
           .select('form_id, title, description, creation_date')
-          .eq('user_id', userEmail)
+          .eq('user_id', user?.email)
           .order('creation_date', { ascending: false });
           
         if (retryError) {
