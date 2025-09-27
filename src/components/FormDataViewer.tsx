@@ -47,6 +47,12 @@ const FormDataViewer = ({ formId }: FormDataViewerProps) => {
   const fetchFormData = async () => {
     setLoading(true);
     try {
+      // Set user email in Supabase config for RLS
+      await supabase.rpc('set_config', {
+        setting_name: 'app.user_email',
+        setting_value: user?.email
+      });
+
       // Fetch form details
       const { data: formInfo, error: formError } = await supabase
         .from('form')
