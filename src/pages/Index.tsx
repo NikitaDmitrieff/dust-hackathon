@@ -26,7 +26,7 @@ const Index = () => {
     <div className="min-h-screen bg-gradient-subtle">
       <AppHeader currentView={currentView} onAction={handleAction} />
       
-      <div className="pt-16">
+      <div className="">
         {currentView === 'create' && (
           <FormBuilder onBack={handleBack} />
         )}
