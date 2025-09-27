@@ -93,6 +93,24 @@ export type Database = {
           },
         ]
       }
+      simple_users: {
+        Row: {
+          created_at: string | null
+          display_name: string | null
+          email: string
+        }
+        Insert: {
+          created_at?: string | null
+          display_name?: string | null
+          email: string
+        }
+        Update: {
+          created_at?: string | null
+          display_name?: string | null
+          email?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
