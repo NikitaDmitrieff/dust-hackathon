@@ -2,64 +2,64 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Scribe Form Design System - Black & White with Prussian Blue accents */
+/* Scribe Form Design System - Vibrant Pastels */
 
 @layer base {
   :root {
-    /* Core Colors */
-    --background: 0 0% 100%;           /* Pure white */
-    --foreground: 0 0% 0%;             /* Pure black */
+    /* Core Colors - Soft pastels */
+    --background: 320 20% 99%;          /* Very light pink */
+    --foreground: 220 15% 20%;          /* Soft dark blue-gray */
     
-    /* Prussian Blue Accent */
-    --prussian: 210 100% 16%;          /* #003153 */
-    --prussian-light: 210 100% 25%;    /* #005080 */
-    --prussian-dark: 210 100% 10%;     /* #002040 */
+    /* Vibrant Pastel Accents */
+    --prussian: 260 70% 65%;            /* Vibrant pastel purple */
+    --prussian-light: 280 60% 75%;      /* Light lavender */
+    --prussian-dark: 240 80% 55%;       /* Rich pastel blue */
 
     /* Card System */
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 0%;
+    --card: 350 30% 98%;
+    --card-foreground: 220 15% 20%;
 
     /* Popover System */
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 0%;
+    --popover: 350 30% 98%;
+    --popover-foreground: 220 15% 20%;
 
-    /* Primary (Prussian Blue) */
-    --primary: 210 100% 16%;
-    --primary-foreground: 0 0% 100%;
+    /* Primary (Vibrant Purple) */
+    --primary: 260 70% 65%;
+    --primary-foreground: 350 30% 98%;
 
-    /* Secondary (Light grays) */
-    --secondary: 0 0% 96%;
-    --secondary-foreground: 0 0% 0%;
+    /* Secondary (Soft pastels) */
+    --secondary: 200 40% 92%;
+    --secondary-foreground: 220 15% 20%;
 
-    /* Muted (Medium grays) */
-    --muted: 0 0% 96%;
-    --muted-foreground: 0 0% 45%;
+    /* Muted (Pastel grays) */
+    --muted: 180 20% 94%;
+    --muted-foreground: 220 15% 45%;
 
-    /* Accent (Subtle highlights) */
-    --accent: 0 0% 96%;
-    --accent-foreground: 0 0% 0%;
+    /* Accent (Vibrant mint) */
+    --accent: 160 50% 85%;
+    --accent-foreground: 220 15% 20%;
 
-    /* Destructive */
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 100%;
+    /* Destructive (Soft coral) */
+    --destructive: 10 65% 70%;
+    --destructive-foreground: 350 30% 98%;
 
     /* Borders and inputs */
-    --border: 0 0% 91%;
-    --input: 0 0% 91%;
-    --ring: 210 100% 16%;
+    --border: 280 30% 88%;
+    --input: 280 25% 92%;
+    --ring: 260 70% 65%;
 
     /* Design tokens */
-    --radius: 0.5rem;
+    --radius: 0.75rem;
     
-    /* Custom gradients */
-    --gradient-hero: linear-gradient(135deg, hsl(0 0% 100%) 0%, hsl(0 0% 98%) 100%);
-    --gradient-primary: linear-gradient(135deg, hsl(210 100% 16%) 0%, hsl(210 100% 25%) 100%);
-    --gradient-subtle: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(0 0% 98%) 100%);
+    /* Vibrant pastel gradients */
+    --gradient-hero: linear-gradient(135deg, hsl(320 40% 96%) 0%, hsl(260 30% 94%) 50%, hsl(200 35% 92%) 100%);
+    --gradient-primary: linear-gradient(135deg, hsl(260 70% 65%) 0%, hsl(280 60% 75%) 50%, hsl(300 50% 80%) 100%);
+    --gradient-subtle: linear-gradient(180deg, hsl(350 30% 98%) 0%, hsl(320 25% 96%) 100%);
     
-    /* Shadows with prussian blue */
-    --shadow-elegant: 0 10px 30px -10px hsl(210 100% 16% / 0.1);
-    --shadow-prussian: 0 4px 20px -4px hsl(210 100% 16% / 0.25);
-    --shadow-subtle: 0 2px 8px -2px hsl(0 0% 0% / 0.05);
+    /* Vibrant shadows */
+    --shadow-elegant: 0 10px 30px -10px hsl(260 70% 65% / 0.15);
+    --shadow-prussian: 0 4px 20px -4px hsl(260 70% 65% / 0.3);
+    --shadow-subtle: 0 2px 8px -2px hsl(280 40% 60% / 0.08);
     
     /* Animations */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
