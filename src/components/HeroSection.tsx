@@ -1,6 +1,5 @@
 import { Button } from "@/components/ui/button";
 import { LogOut } from "lucide-react";
-import FormsGrid from "@/components/FormsGrid";
 import { useSimpleAuth } from "@/contexts/SimpleAuthContext";
 
 interface HeroSectionProps {
@@ -76,9 +75,6 @@ const HeroSection = ({ onAction, onEditForm, onViewDashboard }: HeroSectionProps
           </p>
         </div>
       </div>
-      
-      {/* Forms Grid */}
-      <FormsGrid onEditForm={onEditForm} onViewDashboard={onViewDashboard} />
 
       {/* Subtle Feature Points */}
       <div className="max-w-4xl mx-auto px-4 pb-16">

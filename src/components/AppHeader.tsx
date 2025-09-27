@@ -28,7 +28,7 @@ const AppHeader = ({ currentView, onAction }: AppHeaderProps) => {
                 Create Form
               </Button>
               <Button variant="ghost" size="sm" onClick={() => onAction('enter-code')}>
-                Enter Code
+                Enter URL
               </Button>
               <Button variant="ghost" size="sm" onClick={() => onAction('admin')}>
                 Admin Panel
