@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ExternalLink, Edit, BarChart3, FileText, LogIn } from 'lucide-react';
+import { ExternalLink, Edit, BarChart3, FileText } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/hooks/useAuth';
+import { useSimpleAuth } from '@/hooks/useSimpleAuth';
+import SimpleLogin from '@/components/SimpleLogin';
 
 interface Form {
   form_id: string;
@@ -22,31 +23,26 @@ const FormsGrid = ({ onEditForm, onViewDashboard }: FormsGridProps) => {
   const [forms, setForms] = useState<Form[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
-  const { user, loading: authLoading, signInAnonymously } = useAuth();
+  const { userEmail, isSignedIn } = useSimpleAuth();
 
   useEffect(() => {
-    if (!authLoading) {
-      if (user) {
-        fetchUserForms();
-      } else {
-        // Auto sign-in when component mounts and no user
-        handleSignIn();
-      }
-    }
-  }, [user, authLoading]);
-
-  const handleSignIn = async () => {
-    const result = await signInAnonymously();
-    if (result.user) {
+    if (isSignedIn) {
       fetchUserForms();
+    } else {
+      setLoading(false);
     }
-  };
+  }, [isSignedIn, userEmail]);
 
   const fetchUserForms = async () => {
+    if (!userEmail) return;
+    
     try {
+      setLoading(true);
+      
       const { data, error } = await supabase
         .from('form')
         .select('form_id, title, description, creation_date')
+        .eq('user_id', userEmail)
         .order('creation_date', { ascending: false });
 
       if (error) {
@@ -109,20 +105,13 @@ const FormsGrid = ({ onEditForm, onViewDashboard }: FormsGridProps) => {
     );
   }
 
-  if (forms.length === 0 && !user) {
+  if (!isSignedIn) {
     return (
       <div className="py-16">
-        <div className="max-w-6xl mx-auto px-4 text-center">
-          <h2 className="text-3xl font-bold text-foreground mb-8">Your Forms</h2>
-          <div className="bg-card/50 rounded-2xl p-12 border border-border/30">
-            <LogIn className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-foreground mb-2">Sign In Required</h3>
-            <p className="text-muted-foreground mb-6">
-              Please sign in to view and manage your forms
-            </p>
-            <Button onClick={handleSignIn} className="mt-4">
-              Sign In to Continue
-            </Button>
+        <div className="max-w-6xl mx-auto px-4">
+          <h2 className="text-3xl font-bold text-foreground mb-8 text-center">Your Forms</h2>
+          <div className="flex justify-center">
+            <SimpleLogin onLoginSuccess={fetchUserForms} />
           </div>
         </div>
       </div>

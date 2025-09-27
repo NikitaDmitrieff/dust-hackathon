@@ -10,11 +10,6 @@ export function useSimpleAuth() {
     const storedEmail = localStorage.getItem('user_email');
     if (storedEmail) {
       setUserEmail(storedEmail);
-      // Set the database session setting
-      supabase.rpc('set_config', { 
-        setting_name: 'app.user_email', 
-        setting_value: storedEmail 
-      });
     }
   }, []);
 
@@ -31,12 +26,6 @@ export function useSimpleAuth() {
       // Store the email in localStorage
       localStorage.setItem('user_email', email);
       setUserEmail(email);
-
-      // Set the database session setting for RLS policies
-      await supabase.rpc('set_config', { 
-        setting_name: 'app.user_email', 
-        setting_value: email 
-      });
 
       // Insert or update user in simple_users table
       await supabase
@@ -60,11 +49,6 @@ export function useSimpleAuth() {
   const signOut = () => {
     localStorage.removeItem('user_email');
     setUserEmail(null);
-    // Clear the database session setting
-    supabase.rpc('set_config', { 
-      setting_name: 'app.user_email', 
-      setting_value: '' 
-    });
   };
 
   return {

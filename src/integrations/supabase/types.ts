@@ -116,7 +116,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      set_config: {
+        Args: { setting_name: string; setting_value: string }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
