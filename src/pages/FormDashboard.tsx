@@ -8,6 +8,8 @@ const FormDashboard = () => {
   const { formId } = useParams<{ formId: string }>();
   const navigate = useNavigate();
 
+  console.log('FormDashboard component mounted with formId:', formId);
+
   return (
     <div className="min-h-screen bg-gradient-subtle">
       {/* Header */}

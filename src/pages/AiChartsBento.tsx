@@ -32,6 +32,9 @@ const AiChartsBento: React.FC = () => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const { toast } = useToast();
 
+  // Debug logging
+  console.log('AiChartsBento component mounted');
+
   // Load state from localStorage and URL params on mount
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
