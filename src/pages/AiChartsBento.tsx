@@ -172,7 +172,11 @@ const AiChartsBento: React.FC = () => {
         });
       } else {
         // Call real API
-        const response = await fetch(process.env.NEXT_PUBLIC_AI_CHARTS_ENDPOINT || '/functions/v1/ai-charts', {
+        const endpoint = (window as any)?.NEXT_PUBLIC_AI_CHARTS_ENDPOINT 
+          || (window as any)?.AI_CHARTS_ENDPOINT 
+          || '/functions/v1/ai-charts' 
+          || '/api/ai-charts';
+        const response = await fetch(endpoint, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
