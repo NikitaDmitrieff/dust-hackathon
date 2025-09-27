@@ -17,13 +17,18 @@ import { DummyJSONEditor } from '@/components/DummyJSONEditor';
 import FormDataViewer from '@/components/FormDataViewer';
 import { type AiChartsResponse, type ChartResult } from '@/types/ChartSpec';
 import { mockResults, presets, getPresetByKey } from '@/lib/mock';
+import { analyze_dashboard } from '@/Christopher/assistantService';
 
 interface HistoryItem {
   query: string;
   isPinned: boolean;
 }
 
-const AiChartsBento: React.FC = () => {
+interface AiChartsBentoProps {
+  formId?: string;
+}
+
+const AiChartsBento: React.FC<AiChartsBentoProps> = ({ formId }) => {
   const [question, setQuestion] = useState('');
   const [isDemoMode, setIsDemoMode] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
@@ -32,10 +37,29 @@ const AiChartsBento: React.FC = () => {
   const [selectedPreset, setSelectedPreset] = useState<string>('');
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [showDataViewer, setShowDataViewer] = useState(false);
+  const [analysisHtml, setAnalysisHtml] = useState<string>('');
+  const [isAnalysisLoading, setIsAnalysisLoading] = useState(false);
   const { toast } = useToast();
 
   // Debug logging
-  console.log('AiChartsBento component mounted');
+  console.log('AiChartsBento component mounted with formId:', formId);
+
+  // Load Christopher analysis when formId is available
+  useEffect(() => {
+    if (formId && results.length === 0 && !isLoading) {
+      setIsAnalysisLoading(true);
+      analyze_dashboard(formId)
+        .then((html) => {
+          setAnalysisHtml(html);
+        })
+        .catch((error) => {
+          console.error('Error loading Christopher analysis:', error);
+        })
+        .finally(() => {
+          setIsAnalysisLoading(false);
+        });
+    }
+  }, [formId, results.length, isLoading]);
 
   // Load state from localStorage and URL params on mount
   useEffect(() => {
@@ -582,20 +606,40 @@ const AiChartsBento: React.FC = () => {
           </div>
         )}
 
-          {/* Empty State */}
+          {/* Empty State or Christopher Analysis */}
           {results.length === 0 && !isLoading && (
             <div className="text-center py-12">
-              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                <BarChart3 className="w-8 h-8 text-primary" />
-              </div>
-              <h3 className="text-lg font-semibold mb-2">Analyse en cours...</h3>
-              <p className="text-muted-foreground max-w-md mx-auto mb-4">
-                L'IA analyse automatiquement les données de votre formulaire pour générer 
-                les visualisations les plus pertinentes.
-              </p>
-              <p className="text-sm text-muted-foreground">
-                <strong>Astuce :</strong> activez le Mode démo pour voir un exemple avec des données factices.
-              </p>
+              {isAnalysisLoading ? (
+                <div>
+                  <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Loader2 className="w-8 h-8 text-primary animate-spin" />
+                  </div>
+                  <h3 className="text-lg font-semibold mb-2">Analyse en cours...</h3>
+                  <p className="text-muted-foreground max-w-md mx-auto mb-4">
+                    Christopher analyse les données de votre formulaire pour générer 
+                    des insights personnalisés.
+                  </p>
+                </div>
+              ) : analysisHtml ? (
+                <div 
+                  className="text-left max-w-4xl mx-auto"
+                  dangerouslySetInnerHTML={{ __html: analysisHtml }}
+                />
+              ) : (
+                <div>
+                  <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <BarChart3 className="w-8 h-8 text-primary" />
+                  </div>
+                  <h3 className="text-lg font-semibold mb-2">Analyse en cours...</h3>
+                  <p className="text-muted-foreground max-w-md mx-auto mb-4">
+                    L'IA analyse automatiquement les données de votre formulaire pour générer 
+                    les visualisations les plus pertinentes.
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    <strong>Astuce :</strong> activez le Mode démo pour voir un exemple avec des données factices.
+                  </p>
+                </div>
+              )}
             </div>
           )}
         </div>

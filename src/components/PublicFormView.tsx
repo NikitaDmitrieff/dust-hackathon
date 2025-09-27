@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -7,9 +8,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, Send, Edit, User } from 'lucide-react';
+import { ArrowLeft, Send, Edit, User, Sparkles } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { talk_to_assistant_answer } from '@/Victor/assistantService';
 
 interface Question {
   question_id: string;
@@ -37,7 +39,9 @@ const PublicFormView: React.FC<PublicFormViewProps> = ({ formId, onReturnToMenu 
   const [userName, setUserName] = useState('');
   const [isEditMode, setIsEditMode] = useState(false);
   const [hasSubmitted, setHasSubmitted] = useState(false);
+  const [isGeneratingAnswers, setIsGeneratingAnswers] = useState(false);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchFormData();
@@ -157,6 +161,38 @@ const PublicFormView: React.FC<PublicFormViewProps> = ({ formId, onReturnToMenu 
     }));
   };
 
+  const handleAssistantFill = async () => {
+    if (!formData) return;
+    
+    setIsGeneratingAnswers(true);
+    try {
+      const questionData = {
+        questions: formData.questions
+      };
+      
+      const assistantAnswers = await talk_to_assistant_answer(questionData);
+      
+      // Fill the form with assistant answers
+      setAnswers(prev => ({
+        ...prev,
+        ...assistantAnswers
+      }));
+      
+      toast({
+        title: "Success!",
+        description: "Form filled by assistant.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to generate answers. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGeneratingAnswers(false);
+    }
+  };
+
   const handleSubmit = async () => {
     if (!formData) {
       toast({
@@ -232,11 +268,21 @@ const PublicFormView: React.FC<PublicFormViewProps> = ({ formId, onReturnToMenu 
   };
 
   const handleReturnToMenu = () => {
+    // Clear authentication state to force user to login screen
+    localStorage.removeItem('user_email');
+    
+    // Trigger storage event to update auth context immediately
+    window.dispatchEvent(new StorageEvent('storage', {
+      key: 'user_email',
+      newValue: null,
+      oldValue: localStorage.getItem('user_email'),
+    }));
+    
     if (onReturnToMenu) {
       onReturnToMenu();
     } else {
-      // Fallback: navigate to home
-      window.location.href = '/';
+      // Navigate to auth page after clearing auth state
+      navigate('/auth');
     }
   };
 
@@ -360,7 +406,7 @@ const PublicFormView: React.FC<PublicFormViewProps> = ({ formId, onReturnToMenu 
           <CardContent>
             <Button onClick={handleReturnToMenu} variant="outline" className="w-full">
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Return to Menu
+              Go to Login
             </Button>
           </CardContent>
         </Card>
@@ -371,11 +417,11 @@ const PublicFormView: React.FC<PublicFormViewProps> = ({ formId, onReturnToMenu 
   return (
     <div className="min-h-screen bg-gradient-subtle py-8">
       <div className="container mx-auto px-4 max-w-2xl">
-        {/* Return to Menu Button */}
+        {/* Go to Login Button */}
         <div className="mb-6">
           <Button onClick={handleReturnToMenu} variant="outline" className="flex items-center gap-2">
             <ArrowLeft className="w-4 h-4" />
-            Return to Menu
+            Go to Login
           </Button>
         </div>
 
@@ -418,6 +464,16 @@ const PublicFormView: React.FC<PublicFormViewProps> = ({ formId, onReturnToMenu 
             
             {formData.questions.length > 0 && (
               <div className="pt-4 space-y-3">
+                <Button 
+                  onClick={handleAssistantFill}
+                  disabled={isGeneratingAnswers}
+                  variant="outline"
+                  className="w-full flex items-center gap-2 border-primary/30 hover:border-primary/50 hover:bg-primary/5"
+                >
+                  <Sparkles className="w-4 h-4" />
+                  {isGeneratingAnswers ? 'Generating...' : 'Talk to Assistant'}
+                </Button>
+                
                 <Button 
                   onClick={handleSubmit} 
                   disabled={submitting}

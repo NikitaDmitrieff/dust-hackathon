@@ -10,8 +10,9 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Plus, Trash2, MoveUp, MoveDown, Copy, Link, Check, Sparkles, Zap } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { talk_to_assistant } from '@/Nikita/assistantService';
 
 interface Question {
   id: string;
@@ -34,6 +35,7 @@ const FormBuilder = ({ onBack, editingFormId }: FormBuilderProps) => {
   const [formDescription, setFormDescription] = useState('');
   const [questions, setQuestions] = useState<Question[]>([]);
   const [isPublishing, setIsPublishing] = useState(false);
+  
   const [isLinkDialogOpen, setIsLinkDialogOpen] = useState(false);
   const [publishedFormId, setPublishedFormId] = useState<string | null>(null);
   const [isCopied, setIsCopied] = useState(false);
@@ -155,6 +157,18 @@ const FormBuilder = ({ onBack, editingFormId }: FormBuilderProps) => {
 
   const updateQuestionOptions = (id: string, options: string[]) => {
     updateQuestion(id, { options });
+  };
+
+  const handleAIAssistant = () => {
+    const formId = editingFormId || publishedFormId || 'new-form';
+    
+    const formUpdater = {
+      setFormTitle,
+      setFormDescription,
+      setQuestions
+    };
+    
+    talk_to_assistant(formId, formUpdater);
   };
 
   const saveForm = async () => {
@@ -394,12 +408,7 @@ const FormBuilder = ({ onBack, editingFormId }: FormBuilderProps) => {
           {/* Bottom Buttons */}
           <div className="p-8 border-t border-border/50 bg-gradient-to-r from-card/80 to-card space-y-4">
             <Button 
-              onClick={() => {
-                toast({
-                  title: "AI Assistant",
-                  description: "AI form building coming soon! For now, use the question editor on the right.",
-                });
-              }}
+              onClick={handleAIAssistant}
               className="w-full h-14 flex items-center justify-center gap-3 bg-gradient-to-r from-primary via-primary-glow to-primary hover:from-primary-glow hover:via-primary hover:to-primary-glow shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-1 text-primary-foreground font-semibold text-base rounded-xl border-0"
               size="lg"
             >

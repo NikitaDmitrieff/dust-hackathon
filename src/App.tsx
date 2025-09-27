@@ -1,5 +1,3 @@
-import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -10,18 +8,12 @@ import Index from "./pages/Index";
 import FormDashboard from "./pages/FormDashboard";
 import PublicForm from "./pages/PublicForm";
 import NotFound from "./pages/NotFound";
+import Auth from "./pages/Auth";
 
 const queryClient = new QueryClient();
 
-const ProtectedApp = () => {
+const App = () => {
   const { user, loading } = useAuth();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    if (!loading && !user) {
-      navigate('/auth');
-    }
-  }, [user, loading, navigate]);
 
   if (loading) {
     return (
@@ -31,35 +23,28 @@ const ProtectedApp = () => {
     );
   }
 
-  if (!user) {
-    return null;
-  }
-
   return (
-    <Routes>
-      {/* Form Creator Routes - Protected */}
-      <Route path="/" element={<Index />} />
-      
-      {/* Form Dashboard Route - Protected */}
-      <Route path="/dashboard/:formId" element={<FormDashboard />} />
-      
-      {/* Public Client Routes - No Auth Required */}
-      <Route path="/form/:formId" element={<PublicForm />} />
-      
-      {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-      <Route path="*" element={<NotFound />} />
-    </Routes>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <Routes>
+          {/* Auth Route */}
+          <Route path="/auth" element={<Auth />} />
+          
+          {/* Protected Routes */}
+          <Route path="/" element={user ? <Index /> : <Auth />} />
+          <Route path="/dashboard/:formId" element={user ? <FormDashboard /> : <Auth />} />
+          
+          {/* Public Routes */}
+          <Route path="/form/:formId" element={<PublicForm />} />
+          
+          {/* Catch-all */}
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </TooltipProvider>
+    </QueryClientProvider>
   );
 };
-
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <ProtectedApp />
-    </TooltipProvider>
-  </QueryClientProvider>
-);
 
 export default App;

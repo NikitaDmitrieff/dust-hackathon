@@ -19,40 +19,73 @@ const Auth = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Check if user is already logged in
-    const checkUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        navigate('/');
-      }
-    };
-    checkUser();
+    // Check if user is already logged in via localStorage
+    const storedEmail = localStorage.getItem('user_email');
+    if (storedEmail) {
+      navigate('/');
+    }
   }, [navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     
     try {
+      console.log('Starting login process...');
       const validatedData = emailSchema.parse({ email });
       setLoading(true);
 
-      // Set the email in Supabase config for RLS
-      await supabase.rpc('set_config', {
-        setting_name: 'app.user_email',
-        setting_value: validatedData.email
+      console.log('Attempting login with email:', validatedData.email);
+
+      // Store email in localStorage first
+      localStorage.setItem('user_email', validatedData.email);
+      console.log('Email stored in localStorage');
+
+      try {
+        // Set the email in Supabase config for RLS
+        await supabase.rpc('set_config', {
+          setting_name: 'app.user_email',
+          setting_value: validatedData.email
+        });
+        console.log('Supabase RPC successful');
+      } catch (supabaseError) {
+        console.error('Supabase RPC error (continuing anyway):', supabaseError);
+      }
+
+      // Show success message
+      toast({
+        title: "Success",
+        description: "Logged in successfully!",
       });
 
-      // Store email in localStorage
-      localStorage.setItem('user_email', validatedData.email);
+      console.log('Login successful, triggering storage event for immediate auth update');
+      
+      // Trigger storage event to immediately update auth context
+      window.dispatchEvent(new StorageEvent('storage', {
+        key: 'user_email',
+        newValue: validatedData.email,
+        oldValue: null,
+      }));
 
-      // Force a page reload to trigger the AuthContext to pick up the new user
-      window.location.href = '/';
+      // Navigate to home after a short delay to ensure auth state is updated
+      setTimeout(() => {
+        console.log('Navigating to home page');
+        navigate('/');
+      }, 200);
 
     } catch (error) {
+      console.error('Login error:', error);
+      localStorage.removeItem('user_email'); // Clean up on error
+      
       if (error instanceof z.ZodError) {
         toast({
           title: "Validation Error",
           description: error.errors[0].message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Login Error",
+          description: "Failed to log in. Please try again.",
           variant: "destructive",
         });
       }

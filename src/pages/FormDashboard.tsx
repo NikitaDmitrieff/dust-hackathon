@@ -33,7 +33,7 @@ const FormDashboard = () => {
       </div>
 
       {/* AI Charts Interface */}
-      <AiChartsBento />
+      <AiChartsBento formId={formId} />
     </div>
   );
 };
