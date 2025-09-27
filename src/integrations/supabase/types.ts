@@ -14,7 +14,74 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      form_responses: {
+        Row: {
+          client_ip: string | null
+          form_id: string
+          id: string
+          response_data: Json
+          submitted_at: string
+          user_agent: string | null
+        }
+        Insert: {
+          client_ip?: string | null
+          form_id: string
+          id?: string
+          response_data?: Json
+          submitted_at?: string
+          user_agent?: string | null
+        }
+        Update: {
+          client_ip?: string | null
+          form_id?: string
+          id?: string
+          response_data?: Json
+          submitted_at?: string
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "form_responses_form_id_fkey"
+            columns: ["form_id"]
+            isOneToOne: false
+            referencedRelation: "forms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      forms: {
+        Row: {
+          created_at: string
+          description: string | null
+          fields: Json
+          id: string
+          is_published: boolean
+          title: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          fields?: Json
+          id?: string
+          is_published?: boolean
+          title: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          fields?: Json
+          id?: string
+          is_published?: boolean
+          title?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

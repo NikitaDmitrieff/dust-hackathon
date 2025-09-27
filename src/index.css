@@ -2,57 +2,72 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* Scribe Form Design System - Black & White with Prussian Blue accents */
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Core Colors */
+    --background: 0 0% 100%;           /* Pure white */
+    --foreground: 0 0% 0%;             /* Pure black */
+    
+    /* Prussian Blue Accent */
+    --prussian: 210 100% 16%;          /* #003153 */
+    --prussian-light: 210 100% 25%;    /* #005080 */
+    --prussian-dark: 210 100% 10%;     /* #002040 */
 
+    /* Card System */
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 0 0% 0%;
 
+    /* Popover System */
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 0 0% 0%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    /* Primary (Prussian Blue) */
+    --primary: 210 100% 16%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    /* Secondary (Light grays) */
+    --secondary: 0 0% 96%;
+    --secondary-foreground: 0 0% 0%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    /* Muted (Medium grays) */
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 45%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    /* Accent (Subtle highlights) */
+    --accent: 0 0% 96%;
+    --accent-foreground: 0 0% 0%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    /* Destructive */
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    /* Borders and inputs */
+    --border: 0 0% 91%;
+    --input: 0 0% 91%;
+    --ring: 210 100% 16%;
 
+    /* Design tokens */
     --radius: 0.5rem;
+    
+    /* Custom gradients */
+    --gradient-hero: linear-gradient(135deg, hsl(0 0% 100%) 0%, hsl(0 0% 98%) 100%);
+    --gradient-primary: linear-gradient(135deg, hsl(210 100% 16%) 0%, hsl(210 100% 25%) 100%);
+    --gradient-subtle: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(0 0% 98%) 100%);
+    
+    /* Shadows with prussian blue */
+    --shadow-elegant: 0 10px 30px -10px hsl(210 100% 16% / 0.1);
+    --shadow-prussian: 0 4px 20px -4px hsl(210 100% 16% / 0.25);
+    --shadow-subtle: 0 2px 8px -2px hsl(0 0% 0% / 0.05);
+    
+    /* Animations */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-spring: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
 
-    --sidebar-background: 0 0% 98%;
-
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    /* Typography scale */
+    --font-display: system-ui, -apple-system, sans-serif;
+    --font-body: system-ui, -apple-system, sans-serif;
   }
 
   .dark {
