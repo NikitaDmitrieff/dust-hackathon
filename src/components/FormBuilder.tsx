@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Mic, Link } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Mic, Link, Sparkles, Zap } from 'lucide-react';
 import FormPreview, { FormData, Question } from './FormPreview';
 
 interface FormBuilderProps {
@@ -18,6 +21,9 @@ const FormBuilder = ({ onBack }: FormBuilderProps) => {
     { id: '1', message: 'Initializing form builder...', timestamp: new Date() },
     { id: '2', message: 'Waiting for user input...', timestamp: new Date() }
   ]);
+
+  const [formTitle, setFormTitle] = useState('');
+  const [formDescription, setFormDescription] = useState('');
 
   const [formData, setFormData] = useState<FormData>({
     title: 'Customer Feedback Survey',
@@ -167,11 +173,34 @@ const FormBuilder = ({ onBack }: FormBuilderProps) => {
       
       <div className="relative z-10 h-full p-4 flex gap-4">
         {/* Left Section - Flying Tile */}
-        <div className="w-1/2 h-[calc(100vh-6rem)] bg-card/95 backdrop-blur-sm rounded-2xl shadow-2xl border border-white/20 flex flex-col overflow-hidden">
-          {/* Header */}
-          <div className="p-6 border-b border-border/50 bg-gradient-to-r from-card to-card/80">
-            <h2 className="text-xl font-semibold text-foreground">Form Builder</h2>
-            <p className="text-sm text-muted-foreground mt-1">Create your form with AI assistance</p>
+        <div className="w-1/2 h-[calc(100vh-8rem)] bg-card/95 backdrop-blur-sm rounded-2xl shadow-2xl border border-white/20 flex flex-col overflow-hidden">
+          {/* Header with Form Inputs */}
+          <div className="p-8 border-b border-border/50 bg-gradient-to-r from-card to-card/80 space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="formTitle" className="text-sm font-medium text-foreground">
+                Form Name
+              </Label>
+              <Input
+                id="formTitle"
+                placeholder="Enter your form name..."
+                value={formTitle}
+                onChange={(e) => setFormTitle(e.target.value)}
+                className="bg-background/50 border-border/30 focus:border-primary/50"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="formDescription" className="text-sm font-medium text-foreground">
+                Form Description
+              </Label>
+              <Textarea
+                id="formDescription"
+                placeholder="Describe what your form is for..."
+                value={formDescription}
+                onChange={(e) => setFormDescription(e.target.value)}
+                className="bg-background/50 border-border/30 focus:border-primary/50 min-h-[80px] resize-none"
+              />
+            </div>
           </div>
 
           {/* Activity Logs - Scrollable */}
@@ -198,25 +227,25 @@ const FormBuilder = ({ onBack }: FormBuilderProps) => {
           </div>
 
           {/* Bottom Buttons */}
-          <div className="p-6 border-t border-border/50 bg-gradient-to-r from-card/80 to-card flex justify-between gap-4">
+          <div className="p-8 border-t border-border/50 bg-gradient-to-r from-card/80 to-card space-y-4">
             <Button 
               onClick={handleStartChat}
-              className="flex items-center gap-2 shadow-lg hover:shadow-xl transition-all duration-300"
-              variant="default"
+              className="w-full h-14 flex items-center justify-center gap-3 bg-gradient-to-r from-primary via-primary-glow to-primary hover:from-primary-glow hover:via-primary hover:to-primary-glow shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-1 text-primary-foreground font-semibold text-base rounded-xl border-0"
               size="lg"
             >
-              <Mic className="w-4 h-4" />
+              <Sparkles className="w-5 h-5" />
               Talk to Assistant
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent transform -skew-x-12 animate-pulse"></div>
             </Button>
             
             <Button 
               onClick={handleGetFinalLink}
-              className="flex items-center gap-2 shadow-lg hover:shadow-xl transition-all duration-300"
-              variant="outline"
+              className="w-full h-14 flex items-center justify-center gap-3 bg-gradient-to-r from-secondary via-accent to-secondary hover:from-accent hover:via-secondary hover:to-accent shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-1 text-secondary-foreground font-semibold text-base rounded-xl border border-white/30"
               size="lg"
             >
-              <Link className="w-4 h-4" />
+              <Zap className="w-5 h-5" />
               Get Final Link
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent transform -skew-x-12 animate-pulse opacity-0 hover:opacity-100 transition-opacity duration-300"></div>
             </Button>
           </div>
 
@@ -236,8 +265,10 @@ const FormBuilder = ({ onBack }: FormBuilderProps) => {
         </div>
 
         {/* Right Section - Flying Tile */}
-        <div className="w-1/2 h-[calc(100vh-6rem)] bg-card/95 backdrop-blur-sm rounded-2xl shadow-2xl border border-white/20 overflow-hidden">
-          <FormPreview formData={formData} />
+        <div className="w-1/2 h-[calc(100vh-8rem)] bg-card/95 backdrop-blur-sm rounded-2xl shadow-2xl border border-white/20 overflow-hidden">
+          <div className="p-8">
+            <FormPreview formData={formData} />
+          </div>
         </div>
       </div>
     </div>
