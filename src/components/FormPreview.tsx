@@ -111,65 +111,67 @@ const FormPreview: React.FC<FormPreviewProps> = ({ formData }) => {
   };
 
   return (
-    <div className="h-full p-6 overflow-y-auto bg-background">
-      <Card className="max-w-2xl mx-auto">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl text-center text-foreground">
-            {formData.title || 'Form Title'}
-          </CardTitle>
-          {formData.description && (
-            <p className="text-center text-muted-foreground">
-              {formData.description}
-            </p>
-          )}
-        </CardHeader>
-        
-        <CardContent className="space-y-6">
-          {formData.questions.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <h3 className="text-lg font-medium text-foreground mb-2">No questions yet</h3>
+    <div className="h-full overflow-y-auto">
+      <div className="p-6">
+        <Card className="max-w-2xl mx-auto bg-background/90 backdrop-blur-sm border-white/20 shadow-xl">
+          <CardHeader className="space-y-1 text-center bg-gradient-to-br from-card to-card/80">
+            <CardTitle className="text-2xl text-foreground">
+              {formData.title || 'Form Title'}
+            </CardTitle>
+            {formData.description && (
               <p className="text-muted-foreground">
-                Questions will appear here as the assistant creates them
+                {formData.description}
               </p>
-            </div>
-          ) : (
-            formData.questions.map((question, index) => (
-              <div
-                key={question.id}
-                className="space-y-2 p-4 rounded-lg border border-border bg-card/50 animate-fade-in"
-              >
-                <div className="flex items-start gap-2">
-                  <span className="text-xs font-medium text-primary bg-primary/10 px-2 py-1 rounded-full min-w-[24px] text-center">
-                    {index + 1}
-                  </span>
-                  <div className="flex-1">
-                    <Label className="text-sm font-medium text-foreground">
-                      {question.question}
-                      {question.required && (
-                        <span className="text-destructive ml-1">*</span>
-                      )}
-                    </Label>
-                    {renderQuestion(question)}
+            )}
+          </CardHeader>
+        
+          <CardContent className="space-y-6">
+            {formData.questions.length === 0 ? (
+              <div className="text-center py-12">
+                <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-8 h-8 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-medium text-foreground mb-2">No questions yet</h3>
+                <p className="text-muted-foreground">
+                  Questions will appear here as the assistant creates them
+                </p>
+              </div>
+            ) : (
+              formData.questions.map((question, index) => (
+                <div
+                  key={question.id}
+                  className="space-y-2 p-4 rounded-lg border border-border bg-card/50 animate-fade-in"
+                >
+                  <div className="flex items-start gap-2">
+                    <span className="text-xs font-medium text-primary bg-primary/10 px-2 py-1 rounded-full min-w-[24px] text-center">
+                      {index + 1}
+                    </span>
+                    <div className="flex-1">
+                      <Label className="text-sm font-medium text-foreground">
+                        {question.question}
+                        {question.required && (
+                          <span className="text-destructive ml-1">*</span>
+                        )}
+                      </Label>
+                      {renderQuestion(question)}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))
-          )}
+              ))
+            )}
 
-          {formData.questions.length > 0 && (
-            <div className="pt-4 border-t border-border">
-              <Button className="w-full" size="lg">
-                Submit Form
-              </Button>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+            {formData.questions.length > 0 && (
+              <div className="pt-4 border-t border-border">
+                <Button className="w-full" size="lg">
+                  Submit Form
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };

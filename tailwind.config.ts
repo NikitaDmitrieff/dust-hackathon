@@ -57,6 +57,7 @@ export default {
         'gradient-hero': 'var(--gradient-hero)',
         'gradient-primary': 'var(--gradient-primary)',
         'gradient-subtle': 'var(--gradient-subtle)',
+        'noise': 'var(--noise-pattern)'
       },
       boxShadow: {
         'elegant': 'var(--shadow-elegant)',
