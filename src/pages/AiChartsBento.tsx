@@ -8,12 +8,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { CalendarDays, BarChart3, History, Filter, Sparkles, Play, Loader2, Pin, PinOff, FileCode } from 'lucide-react';
+import { CalendarDays, BarChart3, Database, Filter, Sparkles, Play, Loader2, Pin, PinOff, FileCode } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { BentoGrid, BentoResultsGrid } from '@/components/bento/BentoGrid';
 import { BentoTile } from '@/components/bento/BentoTile';
 import { AiChartCard } from '@/components/charts/AiChartCard';
 import { DummyJSONEditor } from '@/components/DummyJSONEditor';
+import FormDataViewer from '@/components/FormDataViewer';
 import { type AiChartsResponse, type ChartResult } from '@/types/ChartSpec';
 import { mockResults, presets, getPresetByKey } from '@/lib/mock';
 
@@ -30,6 +31,7 @@ const AiChartsBento: React.FC = () => {
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [selectedPreset, setSelectedPreset] = useState<string>('');
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [showDataViewer, setShowDataViewer] = useState(false);
   const { toast } = useToast();
 
   // Debug logging
@@ -329,6 +331,35 @@ const AiChartsBento: React.FC = () => {
     }
   };
 
+  const getFormId = () => {
+    const pathSegments = window.location.pathname.split('/');
+    return pathSegments[pathSegments.length - 1];
+  };
+
+  if (showDataViewer) {
+    const formId = getFormId();
+    return (
+      <TooltipProvider>
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900">
+          <div className="container mx-auto p-6 space-y-8">
+            <div className="flex items-center gap-4 mb-6">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => setShowDataViewer(false)}
+                className="flex items-center gap-2"
+              >
+                ← Back to Dashboard
+              </Button>
+              <h1 className="text-2xl font-bold text-foreground">Raw Form Data</h1>
+            </div>
+            <FormDataViewer formId={formId} />
+          </div>
+        </div>
+      </TooltipProvider>
+    );
+  }
+
   return (
     <TooltipProvider>
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900">
@@ -430,60 +461,26 @@ const AiChartsBento: React.FC = () => {
                 </div>
               </BentoTile>
 
-              {/* Tile B: History (1x1) */}
+              {/* Tile B: View Answers Raw (1x1) */}
               <BentoTile cols={1} rows={1}>
                 <div className="h-full flex flex-col">
                   <div className="flex items-center gap-2 mb-4">
-                    <History className="w-5 h-5 text-primary" />
-                    <h3 className="font-semibold">Historique</h3>
+                    <Database className="w-5 h-5 text-primary" />
+                    <h3 className="font-semibold">View Answers Raw</h3>
                   </div>
 
-                  <div className="flex-1 overflow-y-auto">
-                    {history.length === 0 ? (
-                      <p className="text-sm text-muted-foreground">
-                        Aucune recherche récente
-                      </p>
-                    ) : (
-                      <div className="space-y-2">
-                        {history.map((item, index) => (
-                          <div key={index} className="flex items-center gap-1">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => runHistoryQuery(item.query)}
-                              className="flex-1 justify-start text-left h-auto p-2 text-xs"
-                              disabled={isLoading}
-                            >
-                              <div className="truncate">{item.query}</div>
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => togglePin(item.query)}
-                              className="p-1"
-                            >
-                              {item.isPinned ? (
-                                <Pin className="w-3 h-3 text-primary" />
-                              ) : (
-                                <PinOff className="w-3 h-3" />
-                              )}
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => {
-                                setQuestion(item.query);
-                                generateChart();
-                              }}
-                              disabled={isLoading}
-                              className="p-1"
-                            >
-                              <Play className="w-3 h-3" />
-                            </Button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
+                  <div className="flex-1 flex flex-col justify-center">
+                    <p className="text-sm text-muted-foreground mb-4">
+                      View raw form responses data organized by questions or users.
+                    </p>
+                    <Button 
+                      onClick={() => setShowDataViewer(true)}
+                      variant="outline"
+                      className="w-full flex items-center gap-2"
+                    >
+                      <Database className="w-4 h-4" />
+                      View Raw Data
+                    </Button>
                   </div>
                 </div>
               </BentoTile>
