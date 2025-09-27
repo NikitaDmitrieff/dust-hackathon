@@ -14,97 +14,84 @@ export type Database = {
   }
   public: {
     Tables: {
-      form_responses: {
+      answer: {
         Row: {
-          client_ip: string | null
-          form_id: string
-          id: string
-          response_data: Json
-          submitted_at: string
-          user_agent: string | null
+          answer: string
+          answer_id: string
+          question_id: string
         }
         Insert: {
-          client_ip?: string | null
-          form_id: string
-          id?: string
-          response_data?: Json
-          submitted_at?: string
-          user_agent?: string | null
+          answer: string
+          answer_id?: string
+          question_id: string
         }
         Update: {
-          client_ip?: string | null
-          form_id?: string
-          id?: string
-          response_data?: Json
-          submitted_at?: string
-          user_agent?: string | null
+          answer?: string
+          answer_id?: string
+          question_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "form_responses_form_id_fkey"
-            columns: ["form_id"]
+            foreignKeyName: "answer_question_id_fkey"
+            columns: ["question_id"]
             isOneToOne: false
-            referencedRelation: "forms"
-            referencedColumns: ["id"]
+            referencedRelation: "question"
+            referencedColumns: ["question_id"]
           },
         ]
       }
-      forms: {
+      form: {
         Row: {
-          created_at: string
+          creation_date: string
           description: string | null
-          fields: Json
-          id: string
-          is_published: boolean
+          form_id: string
           title: string
-          updated_at: string
-          user_id: string
+          user_id: string | null
         }
         Insert: {
-          created_at?: string
+          creation_date?: string
           description?: string | null
-          fields?: Json
-          id?: string
-          is_published?: boolean
-          title: string
-          updated_at?: string
-          user_id: string
+          form_id?: string
+          title?: string
+          user_id?: string | null
         }
         Update: {
-          created_at?: string
+          creation_date?: string
           description?: string | null
-          fields?: Json
-          id?: string
-          is_published?: boolean
+          form_id?: string
           title?: string
-          updated_at?: string
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: []
       }
-      profiles: {
+      question: {
         Row: {
-          created_at: string
-          display_name: string | null
-          id: string
-          is_anonymous: boolean | null
-          updated_at: string
+          form_id: string
+          question: string
+          question_id: string
+          type_answer: string
         }
         Insert: {
-          created_at?: string
-          display_name?: string | null
-          id: string
-          is_anonymous?: boolean | null
-          updated_at?: string
+          form_id: string
+          question: string
+          question_id?: string
+          type_answer: string
         }
         Update: {
-          created_at?: string
-          display_name?: string | null
-          id?: string
-          is_anonymous?: boolean | null
-          updated_at?: string
+          form_id?: string
+          question?: string
+          question_id?: string
+          type_answer?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "question_form_id_fkey"
+            columns: ["form_id"]
+            isOneToOne: false
+            referencedRelation: "form"
+            referencedColumns: ["form_id"]
+          },
+        ]
       }
     }
     Views: {
