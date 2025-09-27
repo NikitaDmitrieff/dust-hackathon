@@ -20,9 +20,55 @@ const FormBuilder = ({ onBack }: FormBuilderProps) => {
   ]);
 
   const [formData, setFormData] = useState<FormData>({
-    title: '',
-    description: '',
-    questions: []
+    title: 'Customer Feedback Survey',
+    description: 'Help us improve our services by sharing your valuable feedback. This survey takes approximately 3-5 minutes to complete.',
+    questions: [
+      {
+        id: '1',
+        question: 'What is your full name?',
+        type: 'text',
+        required: true
+      },
+      {
+        id: '2',
+        question: 'What is your email address?',
+        type: 'email',
+        required: true
+      },
+      {
+        id: '3',
+        question: 'How did you hear about our service?',
+        type: 'radio',
+        options: ['Social Media', 'Google Search', 'Friend Referral', 'Advertisement', 'Other'],
+        required: true
+      },
+      {
+        id: '4',
+        question: 'Which services have you used? (Select all that apply)',
+        type: 'checkbox',
+        options: ['Web Development', 'Mobile App Development', 'UI/UX Design', 'Consulting', 'Support Services'],
+        required: false
+      },
+      {
+        id: '5',
+        question: 'How would you rate our overall service quality?',
+        type: 'radio',
+        options: ['Excellent', 'Very Good', 'Good', 'Fair', 'Poor'],
+        required: true
+      },
+      {
+        id: '6',
+        question: 'What is your age?',
+        type: 'number',
+        required: false
+      },
+      {
+        id: '7',
+        question: 'Please share any additional comments, suggestions, or feedback you have for us',
+        type: 'textarea',
+        required: false
+      }
+    ]
   });
 
   const addActivityLog = (message: string) => {
