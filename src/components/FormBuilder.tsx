@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Mic, Link } from 'lucide-react';
+import FormPreview, { FormData, Question } from './FormPreview';
 
 interface FormBuilderProps {
   onBack?: () => void;
@@ -18,22 +19,99 @@ const FormBuilder = ({ onBack }: FormBuilderProps) => {
     { id: '2', message: 'Waiting for user input...', timestamp: new Date() }
   ]);
 
-  const handleStartChat = () => {
+  const [formData, setFormData] = useState<FormData>({
+    title: '',
+    description: '',
+    questions: []
+  });
+
+  const addActivityLog = (message: string) => {
     const newLog = {
       id: Date.now().toString(),
-      message: 'Starting conversation with assistant...',
+      message,
       timestamp: new Date()
     };
     setActivityLogs(prev => [...prev, newLog]);
   };
 
+  const simulateFormCreation = () => {
+    // Simulate assistant creating form
+    addActivityLog('Analyzing user requirements...');
+    
+    setTimeout(() => {
+      addActivityLog('Creating form title and description...');
+      setFormData(prev => ({
+        ...prev,
+        title: 'Customer Feedback Survey',
+        description: 'Help us improve our services by sharing your feedback'
+      }));
+    }, 1000);
+
+    setTimeout(() => {
+      addActivityLog('Creating question 1: Basic information...');
+      setFormData(prev => ({
+        ...prev,
+        questions: [...prev.questions, {
+          id: '1',
+          question: 'What is your name?',
+          type: 'text',
+          required: true
+        }]
+      }));
+    }, 2000);
+
+    setTimeout(() => {
+      addActivityLog('Creating question 2: Contact details...');
+      setFormData(prev => ({
+        ...prev,
+        questions: [...prev.questions, {
+          id: '2',
+          question: 'What is your email address?',
+          type: 'email',
+          required: true
+        }]
+      }));
+    }, 3000);
+
+    setTimeout(() => {
+      addActivityLog('Creating question 3: Satisfaction rating...');
+      setFormData(prev => ({
+        ...prev,
+        questions: [...prev.questions, {
+          id: '3',
+          question: 'How satisfied are you with our service?',
+          type: 'radio',
+          options: ['Very Satisfied', 'Satisfied', 'Neutral', 'Dissatisfied', 'Very Dissatisfied'],
+          required: true
+        }]
+      }));
+    }, 4000);
+
+    setTimeout(() => {
+      addActivityLog('Creating question 4: Additional feedback...');
+      setFormData(prev => ({
+        ...prev,
+        questions: [...prev.questions, {
+          id: '4',
+          question: 'Any additional comments or suggestions?',
+          type: 'textarea',
+          required: false
+        }]
+      }));
+    }, 5000);
+
+    setTimeout(() => {
+      addActivityLog('Form creation completed! Ready to generate link.');
+    }, 6000);
+  };
+
+  const handleStartChat = () => {
+    addActivityLog('Starting conversation with assistant...');
+    simulateFormCreation();
+  };
+
   const handleGetFinalLink = () => {
-    const newLog = {
-      id: Date.now().toString(),
-      message: 'Generating final form link...',
-      timestamp: new Date()
-    };
-    setActivityLogs(prev => [...prev, newLog]);
+    addActivityLog('Generating final form link...');
   };
 
   return (
@@ -99,14 +177,9 @@ const FormBuilder = ({ onBack }: FormBuilderProps) => {
         )}
       </div>
 
-      {/* Right Section - Placeholder for now */}
-      <div className="w-1/2 bg-background flex items-center justify-center">
-        <div className="text-center">
-          <h3 className="text-lg font-medium text-muted-foreground">Right Panel</h3>
-          <p className="text-sm text-muted-foreground mt-2">
-            Awaiting instructions for the right section
-          </p>
-        </div>
+      {/* Right Section - Live Form Preview */}
+      <div className="w-1/2">
+        <FormPreview formData={formData} />
       </div>
     </div>
   );
