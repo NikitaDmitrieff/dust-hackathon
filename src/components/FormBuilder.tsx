@@ -161,13 +161,13 @@ const FormBuilder = ({ onBack }: FormBuilderProps) => {
   };
 
   return (
-    <div className="h-screen overflow-hidden bg-gradient-to-br from-purple-50 via-purple-100/50 to-purple-200/30 relative">
+    <div className="min-h-[calc(100vh-4rem)] overflow-hidden bg-gradient-to-br from-purple-50 via-purple-100/50 to-purple-200/30 relative">
       {/* Background noise texture */}
       <div className="absolute inset-0 opacity-20 bg-noise"></div>
       
-      <div className="relative z-10 h-full p-6 flex gap-6">
+      <div className="relative z-10 h-full p-4 flex gap-4">
         {/* Left Section - Flying Tile */}
-        <div className="w-1/2 bg-card/95 backdrop-blur-sm rounded-2xl shadow-2xl border border-white/20 flex flex-col overflow-hidden">
+        <div className="w-1/2 h-[calc(100vh-6rem)] bg-card/95 backdrop-blur-sm rounded-2xl shadow-2xl border border-white/20 flex flex-col overflow-hidden">
           {/* Header */}
           <div className="p-6 border-b border-border/50 bg-gradient-to-r from-card to-card/80">
             <h2 className="text-xl font-semibold text-foreground">Form Builder</h2>
@@ -236,7 +236,7 @@ const FormBuilder = ({ onBack }: FormBuilderProps) => {
         </div>
 
         {/* Right Section - Flying Tile */}
-        <div className="w-1/2 bg-card/95 backdrop-blur-sm rounded-2xl shadow-2xl border border-white/20 overflow-hidden">
+        <div className="w-1/2 h-[calc(100vh-6rem)] bg-card/95 backdrop-blur-sm rounded-2xl shadow-2xl border border-white/20 overflow-hidden">
           <FormPreview formData={formData} />
         </div>
       </div>
