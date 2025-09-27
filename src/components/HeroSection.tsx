@@ -1,10 +1,13 @@
 import { Button } from "@/components/ui/button";
+import FormsGrid from "@/components/FormsGrid";
 
 interface HeroSectionProps {
   onAction: (action: 'create' | 'fill' | 'admin') => void;
+  onEditForm: (formId: string) => void;
+  onViewDashboard: (formId: string) => void;
 }
 
-const HeroSection = ({ onAction }: HeroSectionProps) => {
+const HeroSection = ({ onAction, onEditForm, onViewDashboard }: HeroSectionProps) => {
   return (
     <div className="py-16 flex flex-col items-center justify-center px-4">
       <div className="max-w-4xl mx-auto text-center space-y-8">
@@ -81,6 +84,9 @@ const HeroSection = ({ onAction }: HeroSectionProps) => {
           </div>
         </div>
       </div>
+      
+      {/* Forms Grid */}
+      <FormsGrid onEditForm={onEditForm} onViewDashboard={onViewDashboard} />
     </div>
   );
 };

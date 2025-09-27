@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import AuthWrapper from "@/components/AuthWrapper";
 import Index from "./pages/Index";
+import FormDashboard from "./pages/FormDashboard";
 import PublicForm from "./pages/PublicForm";
 import NotFound from "./pages/NotFound";
 
@@ -21,6 +22,13 @@ const App = () => (
           <Route path="/" element={
             <AuthWrapper>
               <Index />
+            </AuthWrapper>
+          } />
+          
+          {/* Form Dashboard Route - Protected */}
+          <Route path="/dashboard/:formId" element={
+            <AuthWrapper>
+              <FormDashboard />
             </AuthWrapper>
           } />
           

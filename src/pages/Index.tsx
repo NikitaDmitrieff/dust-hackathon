@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import AppHeader from "@/components/AppHeader";
 import HeroSection from "@/components/HeroSection";
 import FormBuilder from "@/components/FormBuilder";
@@ -7,6 +8,7 @@ import AdminPanel from "@/components/AdminPanel";
 type AppView = 'home' | 'create' | 'admin';
 
 const Index = () => {
+  const navigate = useNavigate();
   const [currentView, setCurrentView] = useState<AppView>('home');
 
   const handleAction = (action: 'create' | 'fill' | 'admin' | 'home') => {
@@ -20,6 +22,15 @@ const Index = () => {
 
   const handleBack = () => {
     setCurrentView('home');
+  };
+
+  const handleEditForm = (formId: string) => {
+    // For now, just navigate to create page - could be enhanced to load specific form
+    setCurrentView('create');
+  };
+
+  const handleViewDashboard = (formId: string) => {
+    navigate(`/dashboard/${formId}`);
   };
 
   return (
@@ -46,7 +57,13 @@ const Index = () => {
             </div>
           </div>
         )}
-        {currentView === 'home' && <HeroSection onAction={handleAction} />}
+        {currentView === 'home' && (
+          <HeroSection 
+            onAction={handleAction} 
+            onEditForm={handleEditForm}
+            onViewDashboard={handleViewDashboard}
+          />
+        )}
       </div>
     </div>
   );
