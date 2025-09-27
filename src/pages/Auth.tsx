@@ -42,15 +42,12 @@ const Auth = () => {
         setting_value: validatedData.email
       });
 
-      // Store email in localStorage to simulate session
+      // Store email in localStorage
       localStorage.setItem('user_email', validatedData.email);
 
-      toast({
-        title: "Success!",
-        description: "You have been logged in successfully.",
-      });
+      // Force a page reload to trigger the AuthContext to pick up the new user
+      window.location.href = '/';
 
-      navigate('/');
     } catch (error) {
       if (error instanceof z.ZodError) {
         toast({
@@ -59,7 +56,6 @@ const Auth = () => {
           variant: "destructive",
         });
       }
-    } finally {
       setLoading(false);
     }
   };
