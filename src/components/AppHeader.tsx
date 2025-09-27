@@ -3,7 +3,7 @@ import { useAuth } from "@/hooks/useAuth";
 
 interface AppHeaderProps {
   currentView: string;
-  onAction: (action: 'create' | 'admin' | 'home') => void;
+  onAction: (action: 'create' | 'admin' | 'home' | 'enter-code') => void;
 }
 
 const AppHeader = ({ currentView, onAction }: AppHeaderProps) => {
@@ -25,10 +25,13 @@ const AppHeader = ({ currentView, onAction }: AppHeaderProps) => {
           {currentView === 'home' ? (
             <>
               <Button variant="ghost" size="sm" onClick={() => onAction('create')}>
-                Create
+                Create Form
+              </Button>
+              <Button variant="ghost" size="sm" onClick={() => onAction('enter-code')}>
+                Enter Code
               </Button>
               <Button variant="ghost" size="sm" onClick={() => onAction('admin')}>
-                Admin
+                Admin Panel
               </Button>
             </>
           ) : (

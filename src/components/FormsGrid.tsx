@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ExternalLink, Edit, BarChart3, FileText } from 'lucide-react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { ExternalLink, Edit, BarChart3, FileText, Trash2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useSimpleAuth } from '@/contexts/SimpleAuthContext';
@@ -21,6 +22,7 @@ interface FormsGridProps {
 const FormsGrid = ({ onEditForm, onViewDashboard }: FormsGridProps) => {
   const [forms, setForms] = useState<Form[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deleteFormId, setDeleteFormId] = useState<string | null>(null);
   const { toast } = useToast();
   const { userEmail } = useSimpleAuth();
 
@@ -94,6 +96,67 @@ const FormsGrid = ({ onEditForm, onViewDashboard }: FormsGridProps) => {
       title: "Copied!",
       description: "Form link copied to clipboard",
     });
+  };
+
+  const deleteForm = async (formId: string) => {
+    try {
+      // First delete all questions for this form
+      const { error: questionsError } = await supabase
+        .from('question')
+        .delete()
+        .eq('form_id', formId);
+
+      if (questionsError) {
+        console.error('Error deleting questions:', questionsError);
+        toast({
+          title: "Error",
+          description: "Failed to delete form questions",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Then delete all answers for this form
+      const { error: answersError } = await supabase
+        .from('answer')
+        .delete()
+        .in('question_id', 
+          (await supabase.from('question').select('question_id').eq('form_id', formId)).data?.map(q => q.question_id) || []
+        );
+
+      // Delete the form itself
+      const { error: formError } = await supabase
+        .from('form')
+        .delete()
+        .eq('form_id', formId);
+
+      if (formError) {
+        console.error('Error deleting form:', formError);
+        toast({
+          title: "Error",
+          description: "Failed to delete form",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Refresh the forms list
+      await fetchUserForms();
+      
+      toast({
+        title: "Success",
+        description: "Form deleted successfully",
+      });
+    } catch (error) {
+      console.error('Error deleting form:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete form",
+        variant: "destructive",
+      });
+    } finally {
+      setDeleteFormId(null);
+    }
   };
 
   if (loading) {
@@ -198,12 +261,42 @@ const FormsGrid = ({ onEditForm, onViewDashboard }: FormsGridProps) => {
                     <BarChart3 className="w-4 h-4" />
                     View Dashboard
                   </Button>
+                  
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full flex items-center gap-2 hover:bg-destructive hover:text-destructive-foreground"
+                    onClick={() => setDeleteFormId(form.form_id)}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    Delete Form
+                  </Button>
                 </div>
               </CardContent>
             </Card>
           ))}
         </div>
       </div>
+      
+      <AlertDialog open={!!deleteFormId} onOpenChange={() => setDeleteFormId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the form and all its responses.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={() => deleteFormId && deleteForm(deleteFormId)}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

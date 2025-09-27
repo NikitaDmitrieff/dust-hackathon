@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -23,9 +23,10 @@ interface Question {
 
 interface FormBuilderProps {
   onBack?: () => void;
+  editingFormId?: string | null;
 }
 
-const FormBuilder = ({ onBack }: FormBuilderProps) => {
+const FormBuilder = ({ onBack, editingFormId }: FormBuilderProps) => {
   const { userEmail } = useSimpleAuth();
   const { toast } = useToast();
   
@@ -36,6 +37,75 @@ const FormBuilder = ({ onBack }: FormBuilderProps) => {
   const [isLinkDialogOpen, setIsLinkDialogOpen] = useState(false);
   const [publishedFormId, setPublishedFormId] = useState<string | null>(null);
   const [isCopied, setIsCopied] = useState(false);
+
+  // Load form data when editing
+  useEffect(() => {
+    if (editingFormId) {
+      loadFormData(editingFormId);
+    } else {
+      // Reset form when creating new
+      setFormTitle('');
+      setFormDescription('');
+      setQuestions([]);
+    }
+  }, [editingFormId]);
+
+  const loadFormData = async (formId: string) => {
+    try {
+      // Load form details
+      const { data: formData, error: formError } = await supabase
+        .from('form')
+        .select('title, description')
+        .eq('form_id', formId)
+        .single();
+
+      if (formError) {
+        console.error('Error loading form:', formError);
+        toast({
+          title: "Error",
+          description: "Failed to load form data",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setFormTitle(formData.title);
+      setFormDescription(formData.description || '');
+
+      // Load questions
+      const { data: questionsData, error: questionsError } = await supabase
+        .from('question')
+        .select('question_id, question, type_answer')
+        .eq('form_id', formId)
+        .order('question_id');
+
+      if (questionsError) {
+        console.error('Error loading questions:', questionsError);
+        toast({
+          title: "Error",
+          description: "Failed to load questions",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const loadedQuestions: Question[] = questionsData.map(q => ({
+        id: q.question_id,
+        question: q.question,
+        type: q.type_answer,
+        required: false // Default value since it's not stored in DB yet
+      }));
+
+      setQuestions(loadedQuestions);
+    } catch (error) {
+      console.error('Error loading form data:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load form data",
+        variant: "destructive",
+      });
+    }
+  };
 
   const addQuestion = () => {
     const newQuestion: Question = {
@@ -87,7 +157,7 @@ const FormBuilder = ({ onBack }: FormBuilderProps) => {
     updateQuestion(id, { options });
   };
 
-  const publishForm = async () => {
+  const saveForm = async () => {
     if (!formTitle.trim()) {
       toast({
         title: "Error",
@@ -108,54 +178,111 @@ const FormBuilder = ({ onBack }: FormBuilderProps) => {
 
     setIsPublishing(true);
     try {
-      console.log('Creating form with data:', { 
-        title: formTitle.trim(), 
-        description: formDescription.trim() || null,
-        user_id: userEmail || 'anonymous'
-      });
-      
-      // Create form
-      const { data: formData, error: formError } = await supabase
-        .from('form')
-        .insert({
-          title: formTitle.trim(),
+      if (editingFormId) {
+        // Update existing form
+        console.log('Updating form with data:', { 
+          title: formTitle.trim(), 
+          description: formDescription.trim() || null,
+          form_id: editingFormId
+        });
+        
+        // Update form
+        const { error: formError } = await supabase
+          .from('form')
+          .update({
+            title: formTitle.trim(),
+            description: formDescription.trim() || null,
+          })
+          .eq('form_id', editingFormId);
+
+        if (formError) {
+          console.error('Error updating form:', formError);
+          throw new Error(`Failed to update form: ${formError.message}`);
+        }
+
+        // Delete existing questions
+        const { error: deleteError } = await supabase
+          .from('question')
+          .delete()
+          .eq('form_id', editingFormId);
+
+        if (deleteError) {
+          console.error('Error deleting old questions:', deleteError);
+          throw new Error(`Failed to delete old questions: ${deleteError.message}`);
+        }
+
+        // Insert new questions
+        const questionsToInsert = questions.map(q => ({
+          form_id: editingFormId,
+          question: q.question.trim(),
+          type_answer: q.type
+        }));
+
+        if (questionsToInsert.length > 0) {
+          const { error: questionsError } = await supabase
+            .from('question')
+            .insert(questionsToInsert);
+
+          if (questionsError) {
+            console.error('Error creating questions:', questionsError);
+            throw new Error(`Failed to create questions: ${questionsError.message}`);
+          }
+        }
+
+        setPublishedFormId(editingFormId);
+      } else {
+        // Create new form
+        console.log('Creating form with data:', { 
+          title: formTitle.trim(), 
           description: formDescription.trim() || null,
           user_id: userEmail || 'anonymous'
-        })
-        .select('form_id')
-        .single();
+        });
+        
+        // Create form
+        const { data: formData, error: formError } = await supabase
+          .from('form')
+          .insert({
+            title: formTitle.trim(),
+            description: formDescription.trim() || null,
+            user_id: userEmail || 'anonymous'
+          })
+          .select('form_id')
+          .single();
 
-      if (formError) {
-        console.error('Error creating form:', formError);
-        throw new Error(`Failed to create form: ${formError.message}`);
+        if (formError) {
+          console.error('Error creating form:', formError);
+          throw new Error(`Failed to create form: ${formError.message}`);
+        }
+
+        console.log('Form created successfully:', formData);
+
+        // Create questions
+        const questionsToInsert = questions.map(q => ({
+          form_id: formData.form_id,
+          question: q.question.trim(),
+          type_answer: q.type
+        }));
+
+        console.log('Creating questions:', questionsToInsert);
+
+        const { error: questionsError } = await supabase
+          .from('question')
+          .insert(questionsToInsert);
+
+        if (questionsError) {
+          console.error('Error creating questions:', questionsError);
+          throw new Error(`Failed to create questions: ${questionsError.message}`);
+        }
+
+        setPublishedFormId(formData.form_id);
       }
-
-      console.log('Form created successfully:', formData);
-
-      // Create questions
-      const questionsToInsert = questions.map(q => ({
-        form_id: formData.form_id,
-        question: q.question.trim(),
-        type_answer: q.type
-      }));
-
-      console.log('Creating questions:', questionsToInsert);
-
-      const { error: questionsError } = await supabase
-        .from('question')
-        .insert(questionsToInsert);
-
-      if (questionsError) {
-        console.error('Error creating questions:', questionsError);
-        throw new Error(`Failed to create questions: ${questionsError.message}`);
-      }
-
-      setPublishedFormId(formData.form_id);
+      setIsLinkDialogOpen(true);
+      
       setIsLinkDialogOpen(true);
       
       toast({
         title: "Success!",
-        description: `Your form code is: ${formData.form_id}`,
+        description: `Form ${editingFormId ? 'updated' : 'published'} successfully!`,
       });
 
     } catch (error) {
@@ -282,7 +409,7 @@ const FormBuilder = ({ onBack }: FormBuilderProps) => {
             </Button>
             
             <Button 
-              onClick={publishForm}
+              onClick={saveForm}
               disabled={isPublishing || !formTitle.trim() || questions.length === 0}
               className="w-full h-14 flex items-center justify-center gap-3 bg-gradient-to-r from-secondary via-accent to-secondary hover:from-accent hover:via-secondary hover:to-accent shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-1 text-secondary-foreground font-semibold text-base rounded-xl border border-white/30"
               size="lg"

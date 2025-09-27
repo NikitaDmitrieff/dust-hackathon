@@ -7,14 +7,17 @@ import FormBuilder from "@/components/FormBuilder";
 import AdminPanel from "@/components/AdminPanel";
 import LoginCard from "@/components/LoginCard";
 import PublicFormView from "@/components/PublicFormView";
+import CodeEntry from "@/components/CodeEntry";
+import FormsGrid from "@/components/FormsGrid";
 
-type AppView = 'home' | 'create' | 'admin';
+type AppView = 'home' | 'create' | 'admin' | 'enter-code' | 'fill';
 
 const Index = () => {
   const navigate = useNavigate();
   const { userEmail, loading } = useSimpleAuth();
   const [currentView, setCurrentView] = useState<AppView>('home');
   const [publicFormId, setPublicFormId] = useState<string | null>(null);
+  const [editingFormId, setEditingFormId] = useState<string | null>(null);
 
   useEffect(() => {
     // Check for URL parameters when component mounts
@@ -28,13 +31,12 @@ const Index = () => {
     }
   }, []);
 
-  const handleAction = (action: 'create' | 'fill' | 'admin' | 'home') => {
-    if (action === 'fill') {
-      // This would typically open a form ID input or recent forms list
-      // For now, we'll show a message about accessing forms via direct links
-      return;
+  const handleAction = (action: 'create' | 'fill' | 'admin' | 'home' | 'enter-code') => {
+    setCurrentView(action);
+    if (action === 'home') {
+      setEditingFormId(null);
+      setPublicFormId(null);
     }
-    setCurrentView(action === 'home' ? 'home' : action);
   };
 
   const handleBack = () => {
@@ -42,7 +44,7 @@ const Index = () => {
   };
 
   const handleEditForm = (formId: string) => {
-    // For now, just navigate to create page - could be enhanced to load specific form
+    setEditingFormId(formId);
     setCurrentView('create');
   };
 
@@ -75,31 +77,33 @@ const Index = () => {
       <AppHeader currentView={currentView} onAction={handleAction} />
       
       <div className="">
-        {currentView === 'create' && (
-          <FormBuilder onBack={handleBack} />
-        )}
-        {currentView === 'admin' && (
-          <div className="container mx-auto px-4 py-8">
-            <div className="bg-card rounded-lg p-6 shadow-lg max-w-2xl mx-auto">
-              <h2 className="text-xl font-semibold text-foreground mb-4">Admin Panel</h2>
-              <p className="text-muted-foreground mb-4">
-                The admin panel is temporarily disabled while we resolve rate limiting issues with the authentication system.
-              </p>
-              <button 
-                onClick={handleBack}
-                className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
-              >
-                Back to Home
-              </button>
-            </div>
-          </div>
-        )}
         {currentView === 'home' && (
           <HeroSection 
             onAction={handleAction} 
             onEditForm={handleEditForm}
             onViewDashboard={handleViewDashboard}
           />
+        )}
+        {currentView === 'home' && (
+          <FormsGrid onEditForm={handleEditForm} onViewDashboard={handleViewDashboard} />
+        )}
+        {currentView === 'create' && <FormBuilder onBack={handleBack} editingFormId={editingFormId} />}
+        {currentView === 'enter-code' && (
+          <CodeEntry 
+            onFormFound={(formId) => {
+              setPublicFormId(formId);
+              setCurrentView('fill');
+            }}
+            onBack={handleBack}
+          />
+        )}
+        {currentView === 'fill' && publicFormId && (
+          <PublicFormView formId={publicFormId} />
+        )}
+        {currentView === 'admin' && (
+          <div className="py-16">
+            <AdminPanel />
+          </div>
         )}
       </div>
     </div>
