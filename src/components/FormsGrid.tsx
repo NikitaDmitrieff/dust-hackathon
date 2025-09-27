@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ExternalLink, Edit, BarChart3, FileText } from 'lucide-react';
+import { ExternalLink, Edit, BarChart3, FileText, LogIn } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
 
 interface Form {
   form_id: string;
@@ -21,10 +22,25 @@ const FormsGrid = ({ onEditForm, onViewDashboard }: FormsGridProps) => {
   const [forms, setForms] = useState<Form[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { user, loading: authLoading, signInAnonymously } = useAuth();
 
   useEffect(() => {
-    fetchUserForms();
-  }, []);
+    if (!authLoading) {
+      if (user) {
+        fetchUserForms();
+      } else {
+        // Auto sign-in when component mounts and no user
+        handleSignIn();
+      }
+    }
+  }, [user, authLoading]);
+
+  const handleSignIn = async () => {
+    const result = await signInAnonymously();
+    if (result.user) {
+      fetchUserForms();
+    }
+  };
 
   const fetchUserForms = async () => {
     try {
@@ -87,6 +103,26 @@ const FormsGrid = ({ onEditForm, onViewDashboard }: FormsGridProps) => {
                 </CardContent>
               </Card>
             ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (forms.length === 0 && !user) {
+    return (
+      <div className="py-16">
+        <div className="max-w-6xl mx-auto px-4 text-center">
+          <h2 className="text-3xl font-bold text-foreground mb-8">Your Forms</h2>
+          <div className="bg-card/50 rounded-2xl p-12 border border-border/30">
+            <LogIn className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-foreground mb-2">Sign In Required</h3>
+            <p className="text-muted-foreground mb-6">
+              Please sign in to view and manage your forms
+            </p>
+            <Button onClick={handleSignIn} className="mt-4">
+              Sign In to Continue
+            </Button>
           </div>
         </div>
       </div>
