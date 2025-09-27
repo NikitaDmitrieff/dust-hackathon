@@ -1,14 +1,35 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { useState } from "react";
+import HeroSection from "@/components/HeroSection";
+import FormBuilder from "@/components/FormBuilder";
+import AdminPanel from "@/components/AdminPanel";
+
+type AppView = 'home' | 'create' | 'admin';
 
 const Index = () => {
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
-      </div>
-    </div>
-  );
+  const [currentView, setCurrentView] = useState<AppView>('home');
+
+  const handleAction = (action: 'create' | 'fill' | 'admin') => {
+    if (action === 'fill') {
+      // This would typically open a form ID input or recent forms list
+      // For now, we'll show a message about accessing forms via direct links
+      return;
+    }
+    setCurrentView(action);
+  };
+
+  const handleBack = () => {
+    setCurrentView('home');
+  };
+
+  if (currentView === 'create') {
+    return <FormBuilder onBack={handleBack} />;
+  }
+
+  if (currentView === 'admin') {
+    return <AdminPanel onBack={handleBack} />;
+  }
+
+  return <HeroSection onAction={handleAction} />;
 };
 
 export default Index;

@@ -87,13 +87,13 @@ const FormBuilder = ({ onBack }: FormBuilderProps) => {
 
       const { data, error } = await supabase
         .from('forms')
-        .insert({
+        .insert([{
           user_id: user.id,
           title: title.trim(),
           description: description.trim() || null,
-          fields: fields,
+          fields: fields as any,
           is_published: true,
-        })
+        }])
         .select()
         .single();
 
