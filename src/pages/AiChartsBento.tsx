@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -39,6 +39,7 @@ const AiChartsBento: React.FC<AiChartsBentoProps> = ({ formId }) => {
   const [showDataViewer, setShowDataViewer] = useState(false);
   const [analysisHtml, setAnalysisHtml] = useState<string>('');
   const [isAnalysisLoading, setIsAnalysisLoading] = useState(false);
+  const analysisContainerRef = useRef<HTMLDivElement | null>(null);
   const { toast } = useToast();
 
   // Debug logging
@@ -110,6 +111,28 @@ const AiChartsBento: React.FC<AiChartsBentoProps> = ({ formId }) => {
       autoGenerateCharts();
     }
   }, [isDemoMode]);
+
+  // Execute inline scripts returned by Christopher backend so Plotly charts render
+  useEffect(() => {
+    if (!analysisHtml) {
+      return;
+    }
+    const container = analysisContainerRef.current;
+    if (!container) {
+      return;
+    }
+
+    const scripts = Array.from(container.querySelectorAll('script'));
+    scripts.forEach((script) => {
+      const replacement = document.createElement('script');
+      // copy attributes like src if provided
+      Array.from(script.attributes).forEach((attr) => {
+        replacement.setAttribute(attr.name, attr.value);
+      });
+      replacement.appendChild(document.createTextNode(script.textContent ?? ''));
+      script.parentNode?.replaceChild(replacement, script);
+    });
+  }, [analysisHtml]);
 
   // Save history to localStorage
   const saveToHistory = (query: string) => {
@@ -622,6 +645,7 @@ const AiChartsBento: React.FC<AiChartsBentoProps> = ({ formId }) => {
                 </div>
               ) : analysisHtml ? (
                 <div 
+                  ref={analysisContainerRef}
                   className="text-left max-w-4xl mx-auto"
                   dangerouslySetInnerHTML={{ __html: analysisHtml }}
                 />
