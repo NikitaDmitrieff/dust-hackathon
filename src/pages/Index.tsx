@@ -1,17 +1,17 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useSimpleAuth } from "@/contexts/SimpleAuthContext";
 import AppHeader from "@/components/AppHeader";
 import HeroSection from "@/components/HeroSection";
 import FormBuilder from "@/components/FormBuilder";
 import AdminPanel from "@/components/AdminPanel";
-import SimpleLogin from "@/components/SimpleLogin";
-import { useSimpleAuth } from "@/hooks/useSimpleAuth";
+import LoginCard from "@/components/LoginCard";
 
 type AppView = 'home' | 'create' | 'admin';
 
 const Index = () => {
   const navigate = useNavigate();
-  const { isSignedIn } = useSimpleAuth();
+  const { userEmail, loading } = useSimpleAuth();
   const [currentView, setCurrentView] = useState<AppView>('home');
 
   const handleAction = (action: 'create' | 'fill' | 'admin' | 'home') => {
@@ -36,8 +36,19 @@ const Index = () => {
     navigate(`/dashboard/${formId}`);
   };
 
-  if (!isSignedIn) {
-    return <SimpleLogin />;
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-subtle flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!userEmail) {
+    return <LoginCard />;
   }
 
   return (
