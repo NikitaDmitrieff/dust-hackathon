@@ -92,12 +92,27 @@ const FormBuilder = ({ onBack, editingFormId }: FormBuilderProps) => {
         return;
       }
 
-      const loadedQuestions: Question[] = questionsData.map(q => ({
-        id: q.question_id,
-        question: q.question,
-        type: q.type_answer,
-        required: false // Default value since it's not stored in DB yet
-      }));
+      const loadedQuestions: Question[] = questionsData.map(q => {
+        // Parse question text and options for radio/checkbox types
+        let questionText = q.question;
+        let options: string[] | undefined = undefined;
+        
+        if (q.question.includes('|OPTIONS:')) {
+          const [text, optionsString] = q.question.split('|OPTIONS:');
+          questionText = text;
+          options = optionsString.split('||').filter(opt => opt.trim() !== '');
+        } else if (['radio', 'checkbox', 'select'].includes(q.type_answer)) {
+          options = ['Option 1', 'Option 2'];
+        }
+        
+        return {
+          id: q.question_id,
+          question: questionText,
+          type: q.type_answer,
+          options,
+          required: false // Default value since it's not stored in DB yet
+        };
+      });
 
       setQuestions(loadedQuestions);
     } catch (error) {
@@ -243,12 +258,19 @@ const FormBuilder = ({ onBack, editingFormId }: FormBuilderProps) => {
           throw new Error(`Failed to delete old questions: ${deleteError.message}`);
         }
 
-        // Insert new questions
-        const questionsToInsert = questions.map(q => ({
-          form_id: editingFormId,
-          question: q.question.trim(),
-          type_answer: q.type
-        }));
+        // Insert new questions with question text encoding options for radio/checkbox
+        const questionsToInsert = questions.map((q, index) => {
+          let questionText = q.question.trim();
+          // Encode options in question text for radio/checkbox types
+          if (['radio', 'checkbox', 'select'].includes(q.type) && q.options) {
+            questionText = `${q.question.trim()}|OPTIONS:${q.options.join('||')}`;
+          }
+          return {
+            form_id: editingFormId,
+            question: questionText,
+            type_answer: q.type
+          };
+        });
 
         if (questionsToInsert.length > 0) {
           const { error: questionsError } = await supabase
@@ -288,12 +310,19 @@ const FormBuilder = ({ onBack, editingFormId }: FormBuilderProps) => {
 
         console.log('Form created successfully:', formData);
 
-        // Create questions
-        const questionsToInsert = questions.map(q => ({
-          form_id: formData.form_id,
-          question: q.question.trim(),
-          type_answer: q.type
-        }));
+        // Create questions with question text encoding options for radio/checkbox
+        const questionsToInsert = questions.map((q, index) => {
+          let questionText = q.question.trim();
+          // Encode options in question text for radio/checkbox types
+          if (['radio', 'checkbox', 'select'].includes(q.type) && q.options) {
+            questionText = `${q.question.trim()}|OPTIONS:${q.options.join('||')}`;
+          }
+          return {
+            form_id: formData.form_id,
+            question: questionText,
+            type_answer: q.type
+          };
+        });
 
         console.log('Creating questions:', questionsToInsert);
 

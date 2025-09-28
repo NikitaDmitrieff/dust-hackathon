@@ -18,6 +18,8 @@ import FormDataViewer from '@/components/FormDataViewer';
 import { type AiChartsResponse, type ChartResult } from '@/types/ChartSpec';
 import { mockResults, presets, getPresetByKey } from '@/lib/mock';
 import { analyze_dashboard } from '@/Christopher/assistantService';
+import { generate_charts_with_ai } from '@/Christopher/chartGenerator';
+import { analyze_question_with_ai } from '@/Christopher/questionAnalyzer';
 
 interface HistoryItem {
   query: string;
@@ -178,12 +180,12 @@ const AiChartsBento: React.FC<AiChartsBentoProps> = ({ formId }) => {
       setResults(data.results || []);
       
       toast({
-        title: "Analyse automatique terminée !",
-        description: `${data.results?.length || 0} visualisation(s) générée(s) automatiquement`,
+        title: "Automatic analysis completed!",
+        description: `${data.results?.length || 0} visualization(s) generated automatically`,
       });
 
       // Add to history
-      const autoQuery = "Analyse automatique des données du formulaire";
+      const autoQuery = "Automatic form data analysis";
       saveToHistory(autoQuery);
       
     } catch (error) {
@@ -192,8 +194,8 @@ const AiChartsBento: React.FC<AiChartsBentoProps> = ({ formId }) => {
       setIsDemoMode(true);
       setResults(mockResults.results);
       toast({
-        title: "Mode démo activé",
-        description: "Affichage des données de démonstration",
+        title: "Demo mode activated",
+        description: "Displaying demonstration data",
       });
     } finally {
       setIsLoading(false);
@@ -239,8 +241,8 @@ const AiChartsBento: React.FC<AiChartsBentoProps> = ({ formId }) => {
   const generateChart = async () => {
     if (!question.trim()) {
       toast({
-        title: "Question requise",
-        description: "Veuillez saisir une question pour générer un graphique",
+        title: "Question required",
+        description: "Please enter a question to generate a chart",
         variant: "destructive",
       });
       return;
@@ -265,8 +267,8 @@ const AiChartsBento: React.FC<AiChartsBentoProps> = ({ formId }) => {
         await new Promise(resolve => setTimeout(resolve, 1500));
         setResults(dataToUse.results);
         toast({
-          title: "Graphiques générés !",
-          description: "Données de démonstration affichées",
+          title: "Charts generated!",
+          description: "Demo data displayed",
         });
       } else {
         // Call real API
@@ -291,15 +293,15 @@ const AiChartsBento: React.FC<AiChartsBentoProps> = ({ formId }) => {
         setResults(data.results || []);
         
         toast({
-          title: "Graphiques générés !",
-          description: `${data.results?.length || 0} visualisation(s) créée(s)`,
+          title: "Charts generated!",
+          description: `${data.results?.length || 0} visualization(s) created`,
         });
       }
     } catch (error) {
       console.error('Error generating charts:', error);
       toast({
-        title: "Erreur de génération",
-        description: error instanceof Error ? error.message : "Une erreur est survenue",
+        title: "Generation error",
+        description: error instanceof Error ? error.message : "An error occurred",
         variant: "destructive",
       });
     } finally {
@@ -336,8 +338,8 @@ const AiChartsBento: React.FC<AiChartsBentoProps> = ({ formId }) => {
   const handleJSONApply = (data: AiChartsResponse) => {
     setResults(data.results);
     toast({
-      title: "Données appliquées !",
-      description: `${data.results.length} visualisation(s) chargée(s)`,
+      title: "Data applied!",
+      description: `${data.results.length} visualization(s) loaded`,
     });
   };
 
@@ -351,7 +353,38 @@ const AiChartsBento: React.FC<AiChartsBentoProps> = ({ formId }) => {
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !isLoading) {
-      generateChart();
+      handleGenerateWithAI();
+    }
+  };
+
+  const handleGenerateWithAI = async () => {
+    if (!question.trim()) {
+      toast({
+        title: "Question required",
+        description: "Please enter a question to generate a chart",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const currentFormId = formId || getFormId();
+      await analyze_question_with_ai(question.trim(), currentFormId);
+      
+      toast({
+        title: "Analysis complete",
+        description: "Question analyzed successfully",
+      });
+    } catch (error) {
+      console.error('Error analyzing question:', error);
+      toast({
+        title: "Analysis error",
+        description: "Failed to analyze question",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -395,9 +428,46 @@ const AiChartsBento: React.FC<AiChartsBentoProps> = ({ formId }) => {
                 AI Charts
               </h1>
               <p className="text-xl text-muted-foreground">
-                Posez une question, on génère le graphique le plus pertinent.
+                Ask a question, we generate the most relevant chart.
               </p>
             </div>
+
+            {/* Christopher Analysis Section */}
+            {results.length === 0 && !isLoading && (
+              <div className="text-center py-12">
+                {isAnalysisLoading ? (
+                  <div>
+                    <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <Loader2 className="w-8 h-8 text-primary animate-spin" />
+                    </div>
+                    <h3 className="text-lg font-semibold mb-2">Analysis in progress...</h3>
+                    <p className="text-muted-foreground max-w-md mx-auto mb-4">
+                      Christopher is analyzing your form data to generate 
+                      personalized insights.
+                    </p>
+                  </div>
+                ) : analysisHtml ? (
+                  <div 
+                    className="text-left max-w-4xl mx-auto"
+                    dangerouslySetInnerHTML={{ __html: analysisHtml }}
+                  />
+                ) : (
+                  <div>
+                    <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <BarChart3 className="w-8 h-8 text-primary" />
+                    </div>
+                    <h3 className="text-lg font-semibold mb-2">Analysis in progress...</h3>
+                    <p className="text-muted-foreground max-w-md mx-auto mb-4">
+                      AI automatically analyzes your form data to generate 
+                      the most relevant visualizations.
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      <strong>Tip:</strong> Enable Demo mode to see an example with mock data.
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
 
             <BentoGrid>
               {/* Tile A: Main Query Input (2x1) */}
@@ -407,19 +477,19 @@ const AiChartsBento: React.FC<AiChartsBentoProps> = ({ formId }) => {
                     <BarChart3 className="w-5 h-5 text-primary" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-lg">Génération IA</h3>
+                    <h3 className="font-semibold text-lg">AI Generation</h3>
                     <p className="text-sm text-muted-foreground">
-                      Décrivez vos besoins d'analyse
+                      Describe your analysis needs
                     </p>
                   </div>
                 </div>
 
                 <div className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="question">Votre question</Label>
+                    <Label htmlFor="question">Your question</Label>
                     <Input
                       id="question"
-                      placeholder="Ex : Ventes par jour (30 derniers jours) ?"
+                      placeholder="Ex: Sales per day (last 30 days)?"
                       value={question}
                       onChange={(e) => setQuestion(e.target.value)}
                       onKeyPress={handleKeyPress}
@@ -428,60 +498,18 @@ const AiChartsBento: React.FC<AiChartsBentoProps> = ({ formId }) => {
                     />
                   </div>
 
-                  <div className="flex flex-wrap items-center gap-3">
-                    <Button 
-                      onClick={generateChart}
-                      disabled={isLoading || !question.trim()}
-                      className="flex items-center gap-2"
-                    >
-                      {isLoading ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                      ) : (
-                        <Sparkles className="w-4 h-4" />
-                      )}
-                      {isLoading ? 'Génération...' : 'Générer avec l\'IA'}
-                    </Button>
-
-                    <Button
-                      variant="outline"
-                      onClick={() => setIsDrawerOpen(true)}
-                      className="flex items-center gap-2"
-                    >
-                      <FileCode className="w-4 h-4" />
-                      Coller JSON factice
-                    </Button>
-                  </div>
-
-                  <div className="flex flex-wrap items-center gap-4">
-                    <div className="flex items-center space-x-2">
-                      <Switch
-                        id="demo-mode"
-                        checked={isDemoMode}
-                        onCheckedChange={handleDemoModeChange}
-                      />
-                      <Label htmlFor="demo-mode" className="text-sm">
-                        Mode démo (données factices)
-                      </Label>
-                    </div>
-
-                    {isDemoMode && (
-                      <div className="flex items-center gap-2">
-                        <Label className="text-sm">Présets:</Label>
-                        <Select value={selectedPreset} onValueChange={handlePresetChange}>
-                          <SelectTrigger className="w-40">
-                            <SelectValue placeholder="Choisir..." />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {Object.entries(presets).map(([key, preset]) => (
-                              <SelectItem key={key} value={key}>
-                                {preset.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
+                  <Button 
+                    onClick={handleGenerateWithAI}
+                    disabled={isLoading || !question.trim()}
+                    className="flex items-center gap-2"
+                  >
+                    {isLoading ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Sparkles className="w-4 h-4" />
                     )}
-                  </div>
+                    {isLoading ? 'Generating...' : 'Generate with AI'}
+                  </Button>
                 </div>
               </BentoTile>
 
@@ -606,42 +634,6 @@ const AiChartsBento: React.FC<AiChartsBentoProps> = ({ formId }) => {
           </div>
         )}
 
-          {/* Empty State or Christopher Analysis */}
-          {results.length === 0 && !isLoading && (
-            <div className="text-center py-12">
-              {isAnalysisLoading ? (
-                <div>
-                  <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Loader2 className="w-8 h-8 text-primary animate-spin" />
-                  </div>
-                  <h3 className="text-lg font-semibold mb-2">Analyse en cours...</h3>
-                  <p className="text-muted-foreground max-w-md mx-auto mb-4">
-                    Christopher analyse les données de votre formulaire pour générer 
-                    des insights personnalisés.
-                  </p>
-                </div>
-              ) : analysisHtml ? (
-                <div 
-                  className="text-left max-w-4xl mx-auto"
-                  dangerouslySetInnerHTML={{ __html: analysisHtml }}
-                />
-              ) : (
-                <div>
-                  <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <BarChart3 className="w-8 h-8 text-primary" />
-                  </div>
-                  <h3 className="text-lg font-semibold mb-2">Analyse en cours...</h3>
-                  <p className="text-muted-foreground max-w-md mx-auto mb-4">
-                    L'IA analyse automatiquement les données de votre formulaire pour générer 
-                    les visualisations les plus pertinentes.
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    <strong>Astuce :</strong> activez le Mode démo pour voir un exemple avec des données factices.
-                  </p>
-                </div>
-              )}
-            </div>
-          )}
         </div>
 
         {/* Dummy JSON Editor Drawer */}
