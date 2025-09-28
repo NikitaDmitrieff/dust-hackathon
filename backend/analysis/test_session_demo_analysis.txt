@@ -1,0 +1,20 @@
+
+USER INTENT ANALYSIS
+====================
+
+1. User's main intent/goal:
+L'utilisateur veut créer un formulaire d'inscription pour un événement sportif (course à pied de 10km).
+
+2. Key requests or needs mentioned:
+- Formulaire d'inscription pour participants
+- Collecter informations personnelles de base
+- Informations de contact d'urgence
+- Niveau d'expérience en course
+- Taille de t-shirt pour le kit participant
+- Restrictions alimentaires/allergies
+- Acceptation des conditions générales
+
+3. Any specific actions they want taken:
+- Créer un formulaire simple et clair
+- S'assurer que tous les champs nécessaires sont présents
+- Permettre une inscription rapide et efficace

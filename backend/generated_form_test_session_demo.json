@@ -1,0 +1,54 @@
+{
+  "title": "Formulaire d'inscription pour la course à pied de 10km",
+  "description": "Veuillez remplir ce formulaire pour vous inscrire à notre événement sportif. Assurez-vous que toutes les informations sont correctes.",
+  "questions": [
+    {
+      "id": "full_name",
+      "question": "Nom complet",
+      "type": "text",
+      "required": true
+    },
+    {
+      "id": "email",
+      "question": "Adresse e-mail",
+      "type": "email",
+      "required": true
+    },
+    {
+      "id": "phone_number",
+      "question": "Numéro de téléphone",
+      "type": "text",
+      "required": true
+    },
+    {
+      "id": "emergency_contact",
+      "question": "Contact d'urgence (nom et numéro)",
+      "type": "text",
+      "required": true
+    },
+    {
+      "id": "experience_level",
+      "question": "Niveau d'expérience en course",
+      "type": "select",
+      "required": true
+    },
+    {
+      "id": "tshirt_size",
+      "question": "Taille de t-shirt pour le kit participant",
+      "type": "select",
+      "required": true
+    },
+    {
+      "id": "dietary_restrictions",
+      "question": "Avez-vous des restrictions alimentaires ou allergies ?",
+      "type": "textarea",
+      "required": false
+    },
+    {
+      "id": "terms_acceptance",
+      "question": "Acceptez-vous les conditions générales ?",
+      "type": "checkbox",
+      "required": true
+    }
+  ]
+}

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug API Test</title>
+</head>
+<body>
+    <h1>Debug API Test</h1>
+    <button id="testBtn">Test OpenAI API</button>
+    <pre id="result"></pre>
+    
+    <script>
+        document.getElementById('testBtn').onclick = async function() {
+            const resultEl = document.getElementById('result');
+            resultEl.textContent = 'Testing...';
+            
+            try {
+                console.log('🚀 Starting test...');
+                
+                // Tester d'abord les variables d'environnement
+                console.log('📡 VITE_BACKEND_URL:', import.meta.env?.VITE_BACKEND_URL);
+                console.log('📡 All env vars:', import.meta.env);
+                
+                const backendUrl = import.meta.env?.VITE_BACKEND_URL || 'http://localhost:8001';
+                const url = `${backendUrl}/api/forms/assist`;
+                
+                console.log('🔄 Making request to:', url);
+                
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ current_form_id: 'debug-test-frontend' }),
+                });
+                
+                console.log('📊 Response status:', response.status);
+                console.log('📊 Response OK:', response.ok);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                
+                const data = await response.json();
+                console.log('📝 Response data:', data);
+                
+                resultEl.textContent = JSON.stringify(data, null, 2);
+                
+                if (data.title === 'Pas d\'open IA') {
+                    resultEl.style.color = 'red';
+                    console.error('❌ Backend returned error message!');
+                } else {
+                    resultEl.style.color = 'green';
+                    console.log('✅ Success! OpenAI is working!');
+                }
+                
+            } catch (error) {
+                console.error('❌ Error:', error);
+                resultEl.textContent = `Error: ${error.message}`;
+                resultEl.style.color = 'red';
+            }
+        };
+    </script>
+</body>
+</html>
