@@ -94,24 +94,8 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-subtle flex flex-col">
-      {/* Logo Header */}
-      <div className="p-6 bg-gradient-subtle">
-        <button 
-          onClick={() => navigate('/')}
-          className="flex items-center hover:opacity-80 transition-opacity"
-        >
-          <img 
-            src="/logo_txt.png" 
-            alt="Scribe Form" 
-            className="w-auto h-12"
-          />
-        </button>
-      </div>
-
-      {/* Main Content - Centered */}
-      <div className="flex-1 flex items-center justify-center p-4">
-        <Card className="w-full max-w-md">
+    <div className="min-h-screen bg-gradient-subtle flex items-center justify-center p-4">
+      <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl">Welcome</CardTitle>
           <CardDescription>
@@ -136,8 +120,7 @@ const Auth = () => {
             </Button>
           </form>
         </CardContent>
-        </Card>
-      </div>
+      </Card>
     </div>
   );
 };

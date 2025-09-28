@@ -472,11 +472,11 @@ const FormBuilder = ({ onBack, editingFormId }: FormBuilderProps) => {
       {/* Background noise texture */}
       <div className="absolute inset-0 opacity-20 bg-noise"></div>
       
-      <div className="relative z-10 h-full px-16 py-4 flex justify-center gap-10">
+      <div className="relative z-10 h-full p-4 flex gap-4">
         {/* Left Section - AI Assistant (Original) */}
-        <div className="w-2/5 h-[calc(100vh-12rem)] bg-card/95 backdrop-blur-sm rounded-2xl shadow-2xl border border-white/20 flex flex-col overflow-hidden">
+        <div className="w-1/2 h-[calc(100vh-8rem)] bg-card/95 backdrop-blur-sm rounded-2xl shadow-2xl border border-white/20 flex flex-col overflow-hidden">
           {/* Header with Form Inputs */}
-          <div className="p-6 border-b border-border/50 bg-gradient-to-r from-card to-card/80 space-y-4">
+          <div className="p-8 border-b border-border/50 bg-gradient-to-r from-card to-card/80 space-y-6">
             <div className="space-y-2">
               <Label htmlFor="formTitle" className="text-sm font-medium text-foreground">
                 Form Name
@@ -506,7 +506,6 @@ const FormBuilder = ({ onBack, editingFormId }: FormBuilderProps) => {
 
           {/* Voice Assistant or Instructions */}
           <div className="flex-1 overflow-y-auto">
-<<<<<<< HEAD
             {showVoiceAssistant ? (
               <div className="p-6 h-full">
                 <VoiceAssistant
@@ -517,28 +516,6 @@ const FormBuilder = ({ onBack, editingFormId }: FormBuilderProps) => {
                   onStopSession={stopSession}
                   isInline={true}
                 />
-=======
-            <div className="p-4">
-              <h3 className="text-sm font-medium text-foreground mb-4 flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
-                Activity Log
-              </h3>
-              <div className="space-y-3">
-                <div className="flex items-start gap-3 text-sm group">
-                  <div className="w-2 h-2 rounded-full bg-primary/60 mt-2 flex-shrink-0 group-hover:bg-primary transition-colors"></div>
-                  <div className="flex-1 bg-muted/30 rounded-lg p-3 hover:bg-muted/50 transition-colors">
-                    <p className="text-foreground font-medium">Form builder initialized...</p>
-                    <p className="text-xs text-muted-foreground mt-1">Ready to create your form</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3 text-sm group">
-                  <div className="w-2 h-2 rounded-full bg-primary/60 mt-2 flex-shrink-0 group-hover:bg-primary transition-colors"></div>
-                  <div className="flex-1 bg-muted/30 rounded-lg p-3 hover:bg-muted/50 transition-colors">
-                    <p className="text-foreground font-medium">Add questions on the right panel</p>
-                    <p className="text-xs text-muted-foreground mt-1">Use the question editor to build your form</p>
-                  </div>
-                </div>
->>>>>>> origin/main-armand
               </div>
               ) : (
                 <div className="p-6 h-full flex items-center justify-center">
@@ -566,7 +543,6 @@ const FormBuilder = ({ onBack, editingFormId }: FormBuilderProps) => {
           </div>
 
           {/* Bottom Buttons */}
-<<<<<<< HEAD
           <div className="p-8 border-t border-border/50 bg-gradient-to-r from-card/80 to-card space-y-4">
             {!showVoiceAssistant ? (
               <Button 
@@ -598,18 +574,6 @@ const FormBuilder = ({ onBack, editingFormId }: FormBuilderProps) => {
                 </Button>
               </div>
             )}
-=======
-          <div className="p-6 border-t border-border/50 bg-gradient-to-r from-card/80 to-card space-y-3">
-            <Button 
-              onClick={handleAIAssistant}
-              className="w-full h-14 flex items-center justify-center gap-3 bg-gradient-to-r from-primary via-primary-glow to-primary hover:from-primary-glow hover:via-primary hover:to-primary-glow shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-1 text-primary-foreground font-semibold text-base rounded-xl border-0"
-              size="lg"
-            >
-              <Sparkles className="w-5 h-5" />
-              Talk to Assistant
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent transform -skew-x-12 animate-pulse"></div>
-            </Button>
->>>>>>> origin/main-armand
             
             <Button 
               onClick={saveForm}
@@ -625,14 +589,14 @@ const FormBuilder = ({ onBack, editingFormId }: FormBuilderProps) => {
         </div>
  
         {/* Right Section - Question Editor */}
-        <div className="w-2/5 h-[calc(100vh-12rem)] bg-card/95 backdrop-blur-sm rounded-2xl shadow-2xl border border-white/20 overflow-hidden">
-          <div className="p-6 border-b">
+        <div className="w-1/2 h-[calc(100vh-8rem)] bg-card/95 backdrop-blur-sm rounded-2xl shadow-2xl border border-white/20 overflow-hidden">
+          <div className="p-8 border-b">
             <h3 className="text-lg font-semibold text-foreground">Question Editor</h3>
             <p className="text-sm text-muted-foreground">Add and customize your form questions</p>
           </div>
           
-          <ScrollArea className="h-[calc(100%-6rem)]">
-            <div className="p-4 space-y-3">
+          <ScrollArea className="h-[calc(100%-8rem)]">
+            <div className="p-6 space-y-4">
               {questions.length === 0 ? (
                 <div className="text-center py-8">
                   <p className="text-muted-foreground mb-4">No questions yet</p>
