@@ -54,7 +54,13 @@ class ConversationLogger:
         if not session_id:
             session_id = self.generate_session_id()
         
+        print(f"\n📝 CONVERSATION LOGGER - STARTING SESSION:")
+        print(f"   Session ID: {session_id}")
+        print(f"   Mode: {mode}")
+        print(f"   Active sessions: {len(self.active_discussions)}")
+        
         self.active_discussions[session_id] = DiscussionSession(session_id, mode)
+        print(f"   ✅ SESSION CREATED")
         return session_id
     
     def extract_conversation_content(self, message_type: str, message: Dict) -> Optional[ConversationItem]:
@@ -95,6 +101,7 @@ class ConversationLogger:
             discussion = self.active_discussions[session_id]
             conversation_item = self.extract_conversation_content('CLIENT', data)
             if conversation_item:
+                print(f"   📝 CLIENT MESSAGE LOGGED: {conversation_item.speaker} - {conversation_item.content[:50]}...")
                 discussion.conversation.append(conversation_item)
     
     def log_openai_message(self, session_id: str, data: Dict):
@@ -103,6 +110,10 @@ class ConversationLogger:
             discussion = self.active_discussions[session_id]
             conversation_item = self.extract_conversation_content('OPENAI', data)
             if conversation_item:
+                # Only log important conversation items to avoid spam
+                if conversation_item.speaker in ['User', 'Assistant']:
+                    content_preview = conversation_item.content[:50] + '...' if len(conversation_item.content) > 50 else conversation_item.content
+                    print(f"   📝 OPENAI MESSAGE LOGGED: {conversation_item.speaker} - {content_preview}")
                 discussion.conversation.append(conversation_item)
     
     def format_conversation(self, conversation: List[ConversationItem]) -> str:
@@ -159,11 +170,19 @@ class ConversationLogger:
             timestamp = datetime.now().isoformat().replace(':', '-').replace('.', '-')
             filename = f"conversation_{session_id}_{timestamp}.txt"
             
+            print(f"\n💾 SAVING CONVERSATION:")
+            print(f"   Session ID: {session_id}")
+            print(f"   Mode: {discussion.mode}")
+            print(f"   Messages: {len(discussion.conversation)}")
+            print(f"   Filename: {filename}")
+            
             # Choose directory based on session mode
             if discussion.mode == 'form_completion':
                 filepath = FORM_COMPLETION_DISCUSSIONS_DIR / filename
+                print(f"   Directory: {FORM_COMPLETION_DISCUSSIONS_DIR}")
             else:
                 filepath = DISCUSSIONS_DIR / filename
+                print(f"   Directory: {DISCUSSIONS_DIR}")
             
             content = f"Conversation Session: {session_id}\n"
             content += f"Started: {discussion.start_time.isoformat()}\n"
@@ -175,9 +194,12 @@ class ConversationLogger:
             
             async with aiofiles.open(filepath, 'w', encoding='utf8') as f:
                 await f.write(content)
+            print(f"   ✅ CONVERSATION FILE SAVED: {filepath}")
             
             # Analyze with ChatGPT-4o
+            print(f"   🤖 STARTING CONVERSATION ANALYSIS...")
             await self.analyze_conversation(filepath, session_id)
+            print(f"   ✅ CONVERSATION ANALYSIS COMPLETED")
             
             # Safe session cleanup
             try:
@@ -197,25 +219,37 @@ class ConversationLogger:
     
     async def analyze_conversation(self, filepath: Path, session_id: str):
         """Analyze conversation with ChatGPT-4o and save to analysis folder."""
+        print(f"\n🤖 ANALYZING CONVERSATION:")
+        print(f"   Session ID: {session_id}")
+        print(f"   File: {filepath}")
+        
         try:
             from chatgpt_parser import parse_transcript_with_chatgpt
             
             # Read conversation file
+            print(f"   📄 READING CONVERSATION FILE...")
             async with aiofiles.open(filepath, 'r', encoding='utf8') as f:
                 transcript_content = await f.read()
+            print(f"   ✅ FILE READ: {len(transcript_content)} characters")
             
             # Parse with ChatGPT-4o
+            print(f"   🤖 CALLING CHATGPT FOR ANALYSIS...")
             analysis = await parse_transcript_with_chatgpt(transcript_content)
+            print(f"   ✅ ANALYSIS RECEIVED: {len(analysis)} characters")
             
             # Save analysis in dedicated folder
             analysis_filename = f"{session_id}_analysis.txt"
             analysis_path = ANALYSIS_DIR / analysis_filename
+            print(f"   💾 SAVING ANALYSIS: {analysis_path}")
             
             async with aiofiles.open(analysis_path, 'w', encoding='utf8') as f:
                 await f.write(f"USER INTENT ANALYSIS\n{'='*20}\n\n{analysis}")
+            print(f"   ✅ ANALYSIS SAVED: {analysis_filename}")
             
         except Exception as error:
-            pass
+            print(f"   ❌ ANALYSIS FAILED: {error}")
+            import traceback
+            traceback.print_exc()
     
     async def get_session_transcript(self, session_id: str, mode: str = 'form_completion') -> Optional[str]:
         """Get the formatted transcript for a session."""

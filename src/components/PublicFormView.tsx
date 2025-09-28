@@ -484,12 +484,6 @@ const PublicFormView: React.FC<PublicFormViewProps> = ({ formId, onReturnToMenu 
     <div className="min-h-screen bg-gradient-subtle py-8">
       <div className="container mx-auto px-4 max-w-2xl">
         {/* Go to Login Button */}
-        <div className="mb-6">
-          <Button onClick={handleReturnToMenu} variant="outline" className="flex items-center gap-2">
-            <ArrowLeft className="w-4 h-4" />
-            Go to Login
-          </Button>
-        </div>
 
         <Card>
           <CardHeader>

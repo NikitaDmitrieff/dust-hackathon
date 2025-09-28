@@ -5,6 +5,7 @@ API routes for OpenAI Realtime API proxy
 
 import os
 import aiohttp
+from datetime import datetime
 from fastapi import HTTPException
 from prompts import DEFAULT_SESSION_CONFIG, DEFAULT_INSTRUCTIONS, DEFAULT_VOICE
 
@@ -72,31 +73,59 @@ async def get_session_config():
 
 async def generate_form_from_latest_session():
     """Generate form JSON from the latest conversation analysis"""
+    print(f"\n🚀 API CALL: GENERATE FORM FROM LATEST SESSION")
+    print(f"   Timestamp: {datetime.now().isoformat()}")
+    
     try:
         from form_generator import get_latest_analysis, generate_form_from_analysis
+        import asyncio
         
-        # Get the latest analysis
+        # Wait a bit for analysis to be completed after conversation save
+        print(f"   ⏳ WAITING 0.5 SECONDS FOR ANALYSIS TO COMPLETE...")
+        await asyncio.sleep(0.5)
+        
+        # Get the latest analysis with retry mechanism
+        print(f"   🔍 SEARCHING FOR LATEST ANALYSIS...")
         analysis = await get_latest_analysis()
+        
+        # If no analysis found, wait a bit more and try again
         if not analysis:
+            print(f"   ⏳ NO ANALYSIS YET, WAITING ADDITIONAL 1 SECOND...")
+            await asyncio.sleep(1.0)
+            analysis = await get_latest_analysis()
+        
+        if not analysis:
+            print(f"   ❌ NO ANALYSIS FOUND AFTER RETRIES")
             raise HTTPException(
                 status_code=404,
-                detail="No conversation analysis found"
+                detail="No conversation analysis found. Please ensure you had a conversation before generating the form."
             )
         
+        print(f"   ✅ ANALYSIS FOUND: {len(analysis)} characters")
+        print(f"   🔍 ANALYSIS PREVIEW: {analysis[:200]}...")
+        
         # Generate form from analysis
+        print(f"   🤖 GENERATING FORM FROM ANALYSIS...")
         form_data = await generate_form_from_analysis(analysis)
         
         if "error" in form_data:
+            print(f"   ❌ FORM GENERATION ERROR: {form_data['error']}")
             raise HTTPException(
                 status_code=500,
                 detail=f"Form generation error: {form_data['error']}"
             )
+        
+        print(f"   ✅ FORM GENERATED SUCCESSFULLY")
+        print(f"   📝 FORM DATA: {form_data}")
         
         return form_data
         
     except HTTPException:
         raise
     except Exception as error:
+        print(f"   ❌ UNEXPECTED ERROR: {error}")
+        import traceback
+        traceback.print_exc()
         raise HTTPException(
             status_code=500,
             detail=f"Failed to generate form: {str(error)}"

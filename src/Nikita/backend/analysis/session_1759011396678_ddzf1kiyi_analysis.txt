@@ -1,8 +1,0 @@
-USER INTENT ANALYSIS
-====================
-
-1. User's main intent/goal: The user is trying to create a form and is seeking assistance in defining the key details for it.
-
-2. Key requests or needs mentioned: The user needs to specify the main purpose of the form, such as whether it is for collecting feedback, registrations, orders, or another purpose.
-
-3. Any specific actions they want taken: The user wants guidance on how to define the key details of the form they are creating.

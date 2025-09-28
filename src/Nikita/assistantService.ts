@@ -85,8 +85,8 @@ const fetchGeneratedForm = async (formUpdater: FormUpdater) => {
     formUpdater.setFormTitle('🔄 Processing your conversation...');
     formUpdater.setFormDescription('Generating form based on your voice interaction...');
     
-    // Wait a bit for the analysis to complete
-    await new Promise(resolve => setTimeout(resolve, 3000));
+    // Brief wait since backend now handles timing
+    await new Promise(resolve => setTimeout(resolve, 500));
     
     // Fetch the generated form from the API
     const response = await fetch('http://localhost:3001/api/generate-form');

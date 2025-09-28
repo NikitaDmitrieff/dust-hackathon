@@ -176,27 +176,49 @@ const FormBuilder = ({ onBack, editingFormId }: FormBuilderProps) => {
   };
 
   const handleAIAssistant = () => {
+    console.log('\n🎙️ FORMBUILDER: OPENING VOICE ASSISTANT');
+    console.log('   Current form state:');
+    console.log('     Title:', formTitle);
+    console.log('     Description:', formDescription);
+    console.log('     Questions:', questions.length);
+    console.log('     Editing form ID:', editingFormId);
     setShowVoiceAssistant(true);
   };
 
   const handleFormGenerated = (formData: any) => {
+    console.log('\n🎉 FORMBUILDER: FORM DATA RECEIVED FROM ASSISTANT');
+    console.log('   Raw form data:', formData);
+    console.log('   Timestamp:', new Date().toISOString());
+    
     // Update the form with generated data
     if (formData.title || formData.form_title) {
-      setFormTitle(formData.title || formData.form_title);
+      const title = formData.title || formData.form_title;
+      console.log('   🏷️ Setting form title:', title);
+      setFormTitle(title);
     }
     if (formData.description || formData.form_description) {
-      setFormDescription(formData.description || formData.form_description);
+      const description = formData.description || formData.form_description;
+      console.log('   📝 Setting form description:', description);
+      setFormDescription(description);
     }
     if (formData.questions && Array.isArray(formData.questions)) {
-      const formattedQuestions = formData.questions.map((q: any, index: number) => ({
-        id: `q_${Date.now()}_${index}`,
-        question: q.question || q.text || '',
-        type: q.type || 'text',
-        options: q.options || [],
-        required: q.required !== false
-      }));
+      console.log('   ❓ Processing', formData.questions.length, 'questions');
+      const formattedQuestions = formData.questions.map((q: any, index: number) => {
+        const formatted = {
+          id: `q_${Date.now()}_${index}`,
+          question: q.question || q.text || '',
+          type: q.type || 'text',
+          options: q.options || [],
+          required: q.required !== false
+        };
+        console.log(`     Question ${index + 1}:`, formatted);
+        return formatted;
+      });
       setQuestions(formattedQuestions);
+      console.log('   ✅ All questions set successfully');
     }
+    
+    console.log('   ✅ FORM DATA PROCESSING COMPLETE');
     
     toast({
       title: "Success!",
@@ -489,7 +511,7 @@ const FormBuilder = ({ onBack, editingFormId }: FormBuilderProps) => {
             </Button>
           </div>
         </div>
-
+ 
         {/* Right Section - Question Editor */}
         <div className="w-1/2 h-[calc(100vh-8rem)] bg-card/95 backdrop-blur-sm rounded-2xl shadow-2xl border border-white/20 overflow-hidden">
           <div className="p-8 border-b">

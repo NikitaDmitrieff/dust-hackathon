@@ -8,6 +8,7 @@ A lightweight proxy server between clients and OpenAI's Realtime API.
 import os
 import json
 import asyncio
+from datetime import datetime
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
@@ -86,12 +87,21 @@ async def generate_form_answers(request_data: dict):
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     """Main WebSocket connection handler"""
+    print("\n" + "="*80)
+    print("🚀 NEW WEBSOCKET CONNECTION ESTABLISHED")
+    print("="*80)
+    
     await websocket.accept()
     
     openai_ws = None
     is_connected = False
     session_mode = 'form_creation'  # Default mode
     session_id = conversation_logger.start_session(mode=session_mode)
+    
+    print(f"📝 INITIAL SESSION CREATED:")
+    print(f"   Session ID: {session_id}")
+    print(f"   Mode: {session_mode}")
+    print(f"   Timestamp: {datetime.now().isoformat()}")
     
     try:
         while True:
@@ -120,18 +130,29 @@ async def websocket_endpoint(websocket: WebSocket):
                             mode = data.get('mode', 'form_creation')
                             questions = data.get('questions', [])
                             
+                            print(f"\n🔗 CONNECTION REQUEST RECEIVED:")
+                            print(f"   Mode: {mode}")
+                            print(f"   Questions count: {len(questions)}")
+                            print(f"   Current session mode: {session_mode}")
+                            
                             # Update session mode if different from default
                             if mode != session_mode:
+                                print(f"   🔄 MODE CHANGE DETECTED: {session_mode} → {mode}")
                                 session_mode = mode
                                 # Restart session with correct mode
+                                old_session_id = session_id
                                 session_id = conversation_logger.start_session(mode=session_mode)
+                                print(f"   📝 NEW SESSION CREATED: {old_session_id} → {session_id}")
                             
+                            print(f"   🚀 ESTABLISHING OPENAI CONNECTION...")
                             openai_ws = await websocket_handler.establish_openai_connection(
                                 data['ephemeralToken'], session_id, websocket, mode, questions
                             )
                             is_connected = True
+                            print(f"   ✅ OPENAI CONNECTION ESTABLISHED")
                             
                             # Start listening to OpenAI messages
+                            print(f"   👂 STARTING OPENAI MESSAGE LISTENER")
                             asyncio.create_task(
                                 websocket_handler.listen_to_openai(openai_ws, session_id, websocket)
                             )
@@ -159,7 +180,13 @@ async def websocket_endpoint(websocket: WebSocket):
     except Exception as error:
         pass
     finally:
+        print(f"\n🔌 WEBSOCKET DISCONNECTION:")
+        print(f"   Session ID: {session_id}")
+        print(f"   Connected: {is_connected}")
+        print(f"   Timestamp: {datetime.now().isoformat()}")
         await websocket_handler.handle_client_disconnect(session_id, openai_ws)
+        print(f"   ✅ CLEANUP COMPLETED")
+        print("="*80)
 
 # ============================================================================
 # SERVER STARTUP
