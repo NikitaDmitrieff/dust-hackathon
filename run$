@@ -7,3 +7,6 @@ npm run dashboard-server
 
 last terminal:
 npm run dev
+
+
+npm run start:all
