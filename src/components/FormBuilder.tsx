@@ -429,11 +429,11 @@ const FormBuilder = ({ onBack, editingFormId }: FormBuilderProps) => {
       {/* Background noise texture */}
       <div className="absolute inset-0 opacity-20 bg-noise"></div>
       
-      <div className="relative z-10 h-full p-4 flex gap-4">
+      <div className="relative z-10 h-full px-16 py-4 flex justify-center gap-10">
         {/* Left Section - AI Assistant (Original) */}
-        <div className="w-1/2 h-[calc(100vh-8rem)] bg-card/95 backdrop-blur-sm rounded-2xl shadow-2xl border border-white/20 flex flex-col overflow-hidden">
+        <div className="w-2/5 h-[calc(100vh-12rem)] bg-card/95 backdrop-blur-sm rounded-2xl shadow-2xl border border-white/20 flex flex-col overflow-hidden">
           {/* Header with Form Inputs */}
-          <div className="p-8 border-b border-border/50 bg-gradient-to-r from-card to-card/80 space-y-6">
+          <div className="p-6 border-b border-border/50 bg-gradient-to-r from-card to-card/80 space-y-4">
             <div className="space-y-2">
               <Label htmlFor="formTitle" className="text-sm font-medium text-foreground">
                 Form Name
@@ -463,7 +463,7 @@ const FormBuilder = ({ onBack, editingFormId }: FormBuilderProps) => {
 
           {/* Activity Logs - Scrollable */}
           <div className="flex-1 overflow-y-auto">
-            <div className="p-6">
+            <div className="p-4">
               <h3 className="text-sm font-medium text-foreground mb-4 flex items-center gap-2">
                 <div className="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
                 Activity Log
@@ -488,7 +488,7 @@ const FormBuilder = ({ onBack, editingFormId }: FormBuilderProps) => {
           </div>
 
           {/* Bottom Buttons */}
-          <div className="p-8 border-t border-border/50 bg-gradient-to-r from-card/80 to-card space-y-4">
+          <div className="p-6 border-t border-border/50 bg-gradient-to-r from-card/80 to-card space-y-3">
             <Button 
               onClick={handleAIAssistant}
               className="w-full h-14 flex items-center justify-center gap-3 bg-gradient-to-r from-primary via-primary-glow to-primary hover:from-primary-glow hover:via-primary hover:to-primary-glow shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-1 text-primary-foreground font-semibold text-base rounded-xl border-0"
@@ -513,14 +513,14 @@ const FormBuilder = ({ onBack, editingFormId }: FormBuilderProps) => {
         </div>
  
         {/* Right Section - Question Editor */}
-        <div className="w-1/2 h-[calc(100vh-8rem)] bg-card/95 backdrop-blur-sm rounded-2xl shadow-2xl border border-white/20 overflow-hidden">
-          <div className="p-8 border-b">
+        <div className="w-2/5 h-[calc(100vh-12rem)] bg-card/95 backdrop-blur-sm rounded-2xl shadow-2xl border border-white/20 overflow-hidden">
+          <div className="p-6 border-b">
             <h3 className="text-lg font-semibold text-foreground">Question Editor</h3>
             <p className="text-sm text-muted-foreground">Add and customize your form questions</p>
           </div>
           
-          <ScrollArea className="h-[calc(100%-8rem)]">
-            <div className="p-6 space-y-4">
+          <ScrollArea className="h-[calc(100%-6rem)]">
+            <div className="p-4 space-y-3">
               {questions.length === 0 ? (
                 <div className="text-center py-8">
                   <p className="text-muted-foreground mb-4">No questions yet</p>

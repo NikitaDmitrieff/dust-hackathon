@@ -13,7 +13,7 @@ const HeroSection = ({ onAction, onEditForm, onViewDashboard, onDeleteForm }: He
   return (
     <div className="relative">
       {/* Hero Section with Background */}
-      <div className="min-h-[calc(100vh-5rem)] flex flex-col justify-center px-4 relative bg-gradient-to-b from-background via-background/95 to-background/90">
+      <div className="min-h-screen flex flex-col justify-center px-4 relative bg-gradient-to-b from-background via-background/95 to-background/90">
         {/* Decorative Elements */}
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-primary/5 rounded-full blur-3xl"></div>
@@ -27,8 +27,8 @@ const HeroSection = ({ onAction, onEditForm, onViewDashboard, onDeleteForm }: He
           
           {/* Top Row */}
           <div className="absolute top-16 left-[5%]">
-            <div className="w-16 h-16 bg-card/60 backdrop-blur-sm rounded-2xl flex items-center justify-center border border-border/20 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 animate-pulse-glow">
-              <FileText className="w-8 h-8 text-primary/70" />
+            <div className="w-12 h-12 bg-card/60 backdrop-blur-sm rounded-2xl flex items-center justify-center border border-border/20 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 animate-pulse-glow">
+              <FileText className="w-6 h-6 text-primary/70" />
             </div>
           </div>
           
@@ -45,8 +45,8 @@ const HeroSection = ({ onAction, onEditForm, onViewDashboard, onDeleteForm }: He
           </div>
           
           <div className="absolute top-24 right-[35%]">
-            <div className="w-14 h-14 bg-card/55 backdrop-blur-sm rounded-xl flex items-center justify-center border border-border/18 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 animate-pulse-glow animation-delay-500">
-              <MessageSquare className="w-7 h-7 text-blue-400/70" />
+            <div className="w-12 h-12 bg-card/55 backdrop-blur-sm rounded-xl flex items-center justify-center border border-border/18 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 animate-pulse-glow animation-delay-500">
+              <MessageSquare className="w-6 h-6 text-blue-400/70" />
             </div>
           </div>
           
@@ -64,8 +64,8 @@ const HeroSection = ({ onAction, onEditForm, onViewDashboard, onDeleteForm }: He
 
           {/* Middle Row */}
           <div className="absolute top-1/2 left-[3%] transform -translate-y-1/2">
-            <div className="w-18 h-18 bg-card/65 backdrop-blur-sm rounded-2xl flex items-center justify-center border border-border/25 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-110 animate-pulse-glow animation-delay-700">
-              <Mail className="w-9 h-9 text-red-400/70" />
+            <div className="w-14 h-14 bg-card/65 backdrop-blur-sm rounded-2xl flex items-center justify-center border border-border/25 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-110 animate-pulse-glow animation-delay-700">
+              <Mail className="w-7 h-7 text-red-400/70" />
             </div>
           </div>
           
@@ -82,15 +82,15 @@ const HeroSection = ({ onAction, onEditForm, onViewDashboard, onDeleteForm }: He
           </div>
           
           <div className="absolute top-1/2 right-[3%] transform -translate-y-1/2">
-            <div className="w-18 h-18 bg-card/65 backdrop-blur-sm rounded-2xl flex items-center justify-center border border-border/25 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-110 animate-pulse-glow animation-delay-1000">
-              <Globe className="w-9 h-9 text-indigo-400/70" />
+            <div className="w-14 h-14 bg-card/65 backdrop-blur-sm rounded-2xl flex items-center justify-center border border-border/25 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-110 animate-pulse-glow animation-delay-1000">
+              <Globe className="w-7 h-7 text-indigo-400/70" />
             </div>
           </div>
 
           {/* Bottom Row */}
           <div className="absolute bottom-32 left-[8%]">
-            <div className="w-14 h-14 bg-card/55 backdrop-blur-sm rounded-xl flex items-center justify-center border border-border/18 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 animate-pulse-glow animation-delay-200">
-              <Clock className="w-7 h-7 text-teal-400/70" />
+            <div className="w-12 h-12 bg-card/55 backdrop-blur-sm rounded-xl flex items-center justify-center border border-border/18 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 animate-pulse-glow animation-delay-200">
+              <Clock className="w-6 h-6 text-teal-400/70" />
             </div>
           </div>
           
@@ -107,8 +107,8 @@ const HeroSection = ({ onAction, onEditForm, onViewDashboard, onDeleteForm }: He
           </div>
           
           <div className="absolute bottom-24 right-[40%]">
-            <div className="w-16 h-16 bg-card/60 backdrop-blur-sm rounded-2xl flex items-center justify-center border border-border/20 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 animate-pulse-glow animation-delay-800">
-              <Award className="w-8 h-8 text-amber-400/70" />
+            <div className="w-12 h-12 bg-card/60 backdrop-blur-sm rounded-2xl flex items-center justify-center border border-border/20 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 animate-pulse-glow animation-delay-800">
+              <Award className="w-6 h-6 text-amber-400/70" />
             </div>
           </div>
           
@@ -119,8 +119,8 @@ const HeroSection = ({ onAction, onEditForm, onViewDashboard, onDeleteForm }: He
           </div>
           
           <div className="absolute bottom-28 right-[8%]">
-            <div className="w-14 h-14 bg-card/55 backdrop-blur-sm rounded-xl flex items-center justify-center border border-border/18 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 animate-pulse-glow animation-delay-400">
-              <Lock className="w-7 h-7 text-slate-400/70" />
+            <div className="w-12 h-12 bg-card/55 backdrop-blur-sm rounded-xl flex items-center justify-center border border-border/18 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 animate-pulse-glow animation-delay-400">
+              <Lock className="w-6 h-6 text-slate-400/70" />
             </div>
           </div>
 
@@ -154,7 +154,7 @@ const HeroSection = ({ onAction, onEditForm, onViewDashboard, onDeleteForm }: He
         <div className="text-center space-y-8 flex-shrink-0 relative z-10">
           {/* Logo with Play Button */}
           <div className="flex justify-center">
-            <div className="relative w-[300px] h-[300px] group">
+            <div className="relative w-[350px] h-[350px] group">
               {/* Logo background */}
               <div 
                 className="w-full h-full rounded-lg"
