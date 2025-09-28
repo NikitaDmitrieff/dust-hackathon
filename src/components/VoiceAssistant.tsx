@@ -19,6 +19,9 @@ interface VoiceAssistantProps {
   mode?: 'form_creation' | 'form_completion';
   questions?: any[];
   isInline?: boolean;
+  onEndCall?: () => void;
+  onPauseSession?: () => void;
+  onStopSession?: () => void;
 }
 
 interface Message {
@@ -34,13 +37,17 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
   onClose,
   mode = 'form_creation',
   questions = [],
-  isInline = false
+  isInline = false,
+  onEndCall,
+  onPauseSession,
+  onStopSession
 }) => {
   const [connectionState, setConnectionState] = useState<'disconnected' | 'connecting' | 'connected' | 'error'>('disconnected');
   const [messages, setMessages] = useState<Message[]>([]);
   const [isRecording, setIsRecording] = useState(false);
   const [sdkLoaded, setSdkLoaded] = useState(false);
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
+  const [isPaused, setIsPaused] = useState(false);
   
   const clientRef = useRef<any>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -201,6 +208,37 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
     onClose();
   };
 
+  const pauseSession = () => {
+    console.log('🔇 PAUSING SESSION');
+    if (clientRef.current && connectionState === 'connected') {
+      // For now, we'll just mute the microphone
+      setIsPaused(true);
+      addMessage('assistant', 'Session paused. Click resume to continue.');
+      if (onPauseSession) {
+        onPauseSession();
+      }
+    }
+  };
+
+  const resumeSession = () => {
+    console.log('🔊 RESUMING SESSION');
+    setIsPaused(false);
+    addMessage('assistant', 'Session resumed. Continue speaking.');
+  };
+
+  const stopSession = () => {
+    console.log('🛑 STOPPING SESSION');
+    if (clientRef.current) {
+      clientRef.current.disconnect();
+    }
+    setConnectionState('disconnected');
+    setIsPaused(false);
+    addMessage('assistant', 'Session stopped.');
+    if (onStopSession) {
+      onStopSession();
+    }
+  };
+
   const endCallAndGenerateForm = async () => {
     console.log('\n🚀 FRONTEND: END CALL AND GENERATE FORM BUTTON CLICKED');
     console.log('   Mode:', mode);
@@ -353,9 +391,9 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
           </p>
         </div>
         
-        {/* Connection Controls */}
-        <div className="flex gap-2 justify-center">
-          {connectionState === 'connecting' ? (
+        {/* Connection Status Only */}
+        {connectionState === 'connecting' && (
+          <div className="flex gap-2 justify-center">
             <Button 
               disabled={true}
               className="flex items-center gap-2"
@@ -364,17 +402,8 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
               <Loader2 className="w-4 h-4 animate-spin" />
               Connecting...
             </Button>
-          ) : connectionState === 'connected' ? (
-            <Button 
-              onClick={endCallAndGenerateForm}
-              className="flex items-center gap-2 bg-green-600 hover:bg-green-700"
-              size="sm"
-            >
-              <PhoneOff className="w-4 h-4" />
-              End Call & Generate
-            </Button>
-          ) : null}
-        </div>
+          </div>
+        )}
 
         {/* Status Indicator */}
         <div className="text-center">

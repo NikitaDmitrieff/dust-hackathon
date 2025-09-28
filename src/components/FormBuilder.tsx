@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import { Plus, Trash2, MoveUp, MoveDown, Copy, Link, Check, Sparkles, Zap } from 'lucide-react';
+import { Plus, Trash2, MoveUp, MoveDown, Copy, Link, Check, Sparkles, Zap, PhoneOff, Square } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -40,6 +40,8 @@ const FormBuilder = ({ onBack, editingFormId }: FormBuilderProps) => {
   const [publishedFormId, setPublishedFormId] = useState<string | null>(null);
   const [isCopied, setIsCopied] = useState(false);
   const [showVoiceAssistant, setShowVoiceAssistant] = useState(false);
+  const [voiceConnectionState, setVoiceConnectionState] = useState<'disconnected' | 'connecting' | 'connected' | 'error'>('disconnected');
+  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
 
   // Load form data when editing
   useEffect(() => {
@@ -183,6 +185,59 @@ const FormBuilder = ({ onBack, editingFormId }: FormBuilderProps) => {
     console.log('     Questions:', questions.length);
     console.log('     Editing form ID:', editingFormId);
     setShowVoiceAssistant(true);
+  };
+
+  const endCallAndGenerateForm = async () => {
+    console.log('\n🚀 FORMBUILDER: END CALL AND GENERATE FORM BUTTON CLICKED');
+    console.log('   Current session ID:', currentSessionId);
+    console.log('   Timestamp:', new Date().toISOString());
+    
+    // Add a delay to ensure disconnection, conversation saving, and analysis are processed
+    console.log('   ⏳ WAITING 2 SECONDS FOR CONVERSATION PROCESSING...');
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    console.log('   ✅ CONVERSATION PROCESSING WAIT COMPLETED');
+    
+    try {
+      console.log('   📋 FORM CREATION MODE - GENERATING FORM');
+      // Generate form from conversation
+      console.log('   🌐 CALLING API: /api/generate-form');
+      const response = await fetch('http://localhost:3001/api/generate-form');
+      console.log('   📨 API RESPONSE STATUS:', response.status);
+      
+      if (response.ok) {
+        const formData = await response.json();
+        console.log('   ✅ FORM GENERATED:', formData);
+        handleFormGenerated(formData);
+        console.log('   🚪 HIDING VOICE ASSISTANT');
+        setShowVoiceAssistant(false);
+      } else {
+        const errorText = await response.text();
+        console.log('   ❌ API ERROR:', errorText);
+        toast({
+          title: "Error",
+          description: "Failed to generate form. Please try again.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('❌ FORMBUILDER ERROR GENERATING:', error);
+      toast({
+        title: "Error",
+        description: "Error generating form. Please check the connection.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const stopSession = () => {
+    console.log('🛑 FORMBUILDER: STOP SESSION');
+    setVoiceConnectionState('disconnected');
+    setCurrentSessionId(null);
+    setShowVoiceAssistant(false);
+    toast({
+      title: "Session Stopped",
+      description: "Voice session has been terminated.",
+    });
   };
 
   const handleFormGenerated = (formData: any) => {
@@ -457,46 +512,68 @@ const FormBuilder = ({ onBack, editingFormId }: FormBuilderProps) => {
                   formId={editingFormId || publishedFormId || 'new-form'}
                   onFormGenerated={handleFormGenerated}
                   onClose={() => setShowVoiceAssistant(false)}
+                  onEndCall={endCallAndGenerateForm}
+                  onStopSession={stopSession}
                   isInline={true}
                 />
               </div>
-            ) : (
-              <div className="p-6">
-                <h3 className="text-sm font-medium text-foreground mb-4 flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
-                  Getting Started
-                </h3>
-                <div className="space-y-3">
-                  <div className="flex items-start gap-3 text-sm group">
-                    <div className="w-2 h-2 rounded-full bg-primary/60 mt-2 flex-shrink-0 group-hover:bg-primary transition-colors"></div>
-                    <div className="flex-1 bg-muted/30 rounded-lg p-3 hover:bg-muted/50 transition-colors">
-                      <p className="text-foreground font-medium">Form builder initialized...</p>
-                      <p className="text-xs text-muted-foreground mt-1">Ready to create your form</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3 text-sm group">
-                    <div className="w-2 h-2 rounded-full bg-primary/60 mt-2 flex-shrink-0 group-hover:bg-primary transition-colors"></div>
-                    <div className="flex-1 bg-muted/30 rounded-lg p-3 hover:bg-muted/50 transition-colors">
-                      <p className="text-foreground font-medium">Add questions manually or use the AI assistant</p>
-                      <p className="text-xs text-muted-foreground mt-1">Click "Talk to Assistant" to describe your form with voice</p>
-                    </div>
-                  </div>
+              ) : (
+                <div className="p-6 h-full flex items-center justify-center">
+                  <Card className="w-full max-w-md mx-auto bg-card/50 backdrop-blur-sm border border-border/30 shadow-lg">
+                    <CardHeader className="text-center pb-4">
+                      <CardTitle className="flex items-center justify-center gap-2 text-lg">
+                        <Sparkles className="w-5 h-5 text-primary" />
+                        AI Form Assistant
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="text-center space-y-4">
+                      <div className="bg-muted/50 rounded-lg p-4 border border-border/20">
+                        <p className="text-foreground font-medium mb-2">Ready to help you create forms</p>
+                        <p className="text-muted-foreground text-sm">
+                          Describe what kind of form you want to create and I'll help you build it with intelligent questions and formatting.
+                        </p>
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        Click "Talk to Assistant" below to get started
+                      </div>
+                    </CardContent>
+                  </Card>
                 </div>
-              </div>
-            )}
+              )}
           </div>
 
           {/* Bottom Buttons */}
           <div className="p-8 border-t border-border/50 bg-gradient-to-r from-card/80 to-card space-y-4">
-            <Button 
-              onClick={handleAIAssistant}
-              className="w-full h-14 flex items-center justify-center gap-3 bg-gradient-to-r from-primary via-primary-glow to-primary hover:from-primary-glow hover:via-primary hover:to-primary-glow shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-1 text-primary-foreground font-semibold text-base rounded-xl border-0"
-              size="lg"
-            >
-              <Sparkles className="w-5 h-5" />
-              {showVoiceAssistant ? 'Hide Assistant' : 'Talk to Assistant'}
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent transform -skew-x-12 animate-pulse"></div>
-            </Button>
+            {!showVoiceAssistant ? (
+              <Button 
+                onClick={handleAIAssistant}
+                className="w-full h-14 flex items-center justify-center gap-3 bg-gradient-to-r from-primary via-primary-glow to-primary hover:from-primary-glow hover:via-primary hover:to-primary-glow shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-1 text-primary-foreground font-semibold text-base rounded-xl border-0"
+                size="lg"
+              >
+                <Sparkles className="w-5 h-5" />
+                Talk to Assistant
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent transform -skew-x-12 animate-pulse"></div>
+              </Button>
+            ) : (
+              <div className="grid grid-cols-2 gap-3">
+                <Button 
+                  onClick={endCallAndGenerateForm}
+                  className="h-14 flex items-center justify-center gap-2 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 shadow-xl hover:shadow-2xl transition-all duration-300 text-white font-semibold text-sm rounded-xl border-0"
+                  size="lg"
+                >
+                  <PhoneOff className="w-4 h-4" />
+                  End & Generate
+                </Button>
+                <Button 
+                  onClick={stopSession}
+                  className="h-14 flex items-center justify-center gap-2 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 shadow-xl hover:shadow-2xl transition-all duration-300 text-white font-semibold text-sm rounded-xl border-0"
+                  size="lg"
+                >
+                  <Square className="w-4 h-4" />
+                  Stop Session
+                </Button>
+              </div>
+            )}
             
             <Button 
               onClick={saveForm}
