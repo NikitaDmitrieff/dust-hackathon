@@ -411,18 +411,6 @@ const FormBuilder = ({ onBack, editingFormId }: FormBuilderProps) => {
     { value: 'select', label: 'Dropdown' }
   ];
 
-  // Show Voice Assistant overlay
-  if (showVoiceAssistant) {
-    return (
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-        <VoiceAssistant
-          formId={editingFormId || publishedFormId || 'new-form'}
-          onFormGenerated={handleFormGenerated}
-          onClose={() => setShowVoiceAssistant(false)}
-        />
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-[calc(100vh-4rem)] overflow-hidden bg-gradient-to-br from-purple-50 via-purple-100/50 to-purple-200/30 relative">
@@ -461,30 +449,41 @@ const FormBuilder = ({ onBack, editingFormId }: FormBuilderProps) => {
             </div>
           </div>
 
-          {/* Activity Logs - Scrollable */}
+          {/* Voice Assistant or Instructions */}
           <div className="flex-1 overflow-y-auto">
-            <div className="p-6">
-              <h3 className="text-sm font-medium text-foreground mb-4 flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
-                Activity Log
-              </h3>
-              <div className="space-y-3">
-                <div className="flex items-start gap-3 text-sm group">
-                  <div className="w-2 h-2 rounded-full bg-primary/60 mt-2 flex-shrink-0 group-hover:bg-primary transition-colors"></div>
-                  <div className="flex-1 bg-muted/30 rounded-lg p-3 hover:bg-muted/50 transition-colors">
-                    <p className="text-foreground font-medium">Form builder initialized...</p>
-                    <p className="text-xs text-muted-foreground mt-1">Ready to create your form</p>
+            {showVoiceAssistant ? (
+              <div className="p-6 h-full">
+                <VoiceAssistant
+                  formId={editingFormId || publishedFormId || 'new-form'}
+                  onFormGenerated={handleFormGenerated}
+                  onClose={() => setShowVoiceAssistant(false)}
+                  isInline={true}
+                />
+              </div>
+            ) : (
+              <div className="p-6">
+                <h3 className="text-sm font-medium text-foreground mb-4 flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
+                  Getting Started
+                </h3>
+                <div className="space-y-3">
+                  <div className="flex items-start gap-3 text-sm group">
+                    <div className="w-2 h-2 rounded-full bg-primary/60 mt-2 flex-shrink-0 group-hover:bg-primary transition-colors"></div>
+                    <div className="flex-1 bg-muted/30 rounded-lg p-3 hover:bg-muted/50 transition-colors">
+                      <p className="text-foreground font-medium">Form builder initialized...</p>
+                      <p className="text-xs text-muted-foreground mt-1">Ready to create your form</p>
+                    </div>
                   </div>
-                </div>
-                <div className="flex items-start gap-3 text-sm group">
-                  <div className="w-2 h-2 rounded-full bg-primary/60 mt-2 flex-shrink-0 group-hover:bg-primary transition-colors"></div>
-                  <div className="flex-1 bg-muted/30 rounded-lg p-3 hover:bg-muted/50 transition-colors">
-                    <p className="text-foreground font-medium">Add questions on the right panel</p>
-                    <p className="text-xs text-muted-foreground mt-1">Use the question editor to build your form</p>
+                  <div className="flex items-start gap-3 text-sm group">
+                    <div className="w-2 h-2 rounded-full bg-primary/60 mt-2 flex-shrink-0 group-hover:bg-primary transition-colors"></div>
+                    <div className="flex-1 bg-muted/30 rounded-lg p-3 hover:bg-muted/50 transition-colors">
+                      <p className="text-foreground font-medium">Add questions manually or use the AI assistant</p>
+                      <p className="text-xs text-muted-foreground mt-1">Click "Talk to Assistant" to describe your form with voice</p>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
 
           {/* Bottom Buttons */}
@@ -495,7 +494,7 @@ const FormBuilder = ({ onBack, editingFormId }: FormBuilderProps) => {
               size="lg"
             >
               <Sparkles className="w-5 h-5" />
-              Talk to Assistant
+              {showVoiceAssistant ? 'Hide Assistant' : 'Talk to Assistant'}
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent transform -skew-x-12 animate-pulse"></div>
             </Button>
             

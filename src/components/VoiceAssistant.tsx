@@ -18,6 +18,7 @@ interface VoiceAssistantProps {
   onClose: () => void;
   mode?: 'form_creation' | 'form_completion';
   questions?: any[];
+  isInline?: boolean;
 }
 
 interface Message {
@@ -32,7 +33,8 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
   onAnswersGenerated,
   onClose,
   mode = 'form_creation',
-  questions = []
+  questions = [],
+  isInline = false
 }) => {
   const [connectionState, setConnectionState] = useState<'disconnected' | 'connecting' | 'connected' | 'error'>('disconnected');
   const [messages, setMessages] = useState<Message[]>([]);
@@ -333,6 +335,91 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
   };
 
   const status = getStatusDisplay();
+
+  if (isInline) {
+    return (
+      <div className="h-full flex flex-col space-y-3">
+        {/* Header */}
+        <div className="text-center">
+          <h3 className="text-sm font-medium text-foreground mb-2 flex items-center justify-center gap-2">
+            <Mic className="w-4 h-4" />
+            Voice Assistant
+          </h3>
+          <p className="text-muted-foreground text-xs">
+            {mode === 'form_completion' 
+              ? 'Answer questions by speaking naturally'
+              : 'Describe what kind of form you want to create'
+            }
+          </p>
+        </div>
+        
+        {/* Connection Controls */}
+        <div className="flex gap-2 justify-center">
+          {connectionState === 'connecting' ? (
+            <Button 
+              disabled={true}
+              className="flex items-center gap-2"
+              size="sm"
+            >
+              <Loader2 className="w-4 h-4 animate-spin" />
+              Connecting...
+            </Button>
+          ) : connectionState === 'connected' ? (
+            <Button 
+              onClick={endCallAndGenerateForm}
+              className="flex items-center gap-2 bg-green-600 hover:bg-green-700"
+              size="sm"
+            >
+              <PhoneOff className="w-4 h-4" />
+              End Call & Generate
+            </Button>
+          ) : null}
+        </div>
+
+        {/* Status Indicator */}
+        <div className="text-center">
+          <div className={`inline-flex items-center gap-2 px-2 py-1 rounded-full text-xs ${status.className}`}>
+            <div className={`w-2 h-2 rounded-full ${status.dotClass}`} />
+            {status.text}
+          </div>
+        </div>
+
+        {/* Messages - Flexible height */}
+        <ScrollArea className="flex-1 w-full border rounded-lg p-3 bg-gray-50">
+          <div className="space-y-2">
+            {messages.map((message, index) => (
+              <div
+                key={index}
+                className={`p-2 rounded text-xs ${
+                  message.type === 'user' 
+                    ? 'bg-blue-100 text-blue-800' 
+                    : message.content.includes('Start a conversation')
+                    ? 'text-gray-500 text-center italic'
+                    : 'bg-purple-100 text-purple-800'
+                }`}
+              >
+                {message.content}
+              </div>
+            ))}
+            <div ref={messagesEndRef} />
+          </div>
+        </ScrollArea>
+
+        {/* Close Button - Only show if connection failed or SDK not loaded */}
+        {(connectionState === 'error' || !sdkLoaded) && (
+          <div className="flex justify-center">
+            <Button 
+              onClick={onClose} 
+              variant="outline"
+              size="sm"
+            >
+              Close Assistant
+            </Button>
+          </div>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="w-full max-w-2xl mx-auto space-y-4">
