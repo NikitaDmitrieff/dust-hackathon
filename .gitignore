@@ -22,3 +22,10 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Christopher files to ignore
+.env
+.python-version
+main.py
+pyproject.toml
+uv.lock

@@ -29,10 +29,15 @@ class SupabaseConfig:
 
 def load_config() -> SupabaseConfig:
     load_dotenv()
-    url = os.getenv("SUPABASE_URL")
-    key = os.getenv("SUPABASE_KEY")
-    if not url or not key:
-        raise RuntimeError("Missing SUPABASE_URL or SUPABASE_KEY in environment (.env).")
+    project_id = os.getenv("VITE_SUPABASE_PROJECT_ID")
+    key = os.getenv("VITE_SUPABASE_PUBLISHABLE_KEY")
+
+    if not project_id or not key:
+        raise RuntimeError(
+            "Missing Supabase credentials. Set VITE_SUPABASE_PROJECT_ID and VITE_SUPABASE_PUBLISHABLE_KEY in your environment.")
+
+    # Construct the REST URL from the Supabase project id (same pattern Vite uses elsewhere).
+    url = f"https://{project_id}.supabase.co"
     return SupabaseConfig(
         url=url,
         key=key,
