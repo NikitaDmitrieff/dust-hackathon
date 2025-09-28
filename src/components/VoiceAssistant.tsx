@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Mic, MicOff, Phone, PhoneOff, Loader2 } from 'lucide-react';
+import { Mic, Phone, PhoneOff, Loader2 } from 'lucide-react';
 
 // Extend window type to include OpenAIRealtimeClient
 declare global {
@@ -139,6 +139,7 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
       },
       
       onSessionStarted: (sessionId: string) => {
+        console.log('🆔 SESSION STARTED:', sessionId);
         setCurrentSessionId(sessionId);
       },
       
@@ -184,21 +185,37 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
     }
   };
 
-  const disconnect = () => {
+  // Disconnect functionality is now integrated into endCallAndGenerateForm
+
+  const endCallAndGenerateForm = async () => {
+    console.log('\n🚀 FRONTEND: END CALL AND GENERATE FORM BUTTON CLICKED');
+    console.log('   Mode:', mode);
+    console.log('   Session ID:', currentSessionId);
+    console.log('   Questions count:', questions?.length || 0);
+    console.log('   Timestamp:', new Date().toISOString());
+    
+    // First disconnect the call
+    console.log('   📞 DISCONNECTING FROM CALL...');
     if (clientRef.current) {
       clientRef.current.disconnect();
     }
-  };
-
-  const generateForm = async () => {
+    
+    // Add a delay to ensure disconnection, conversation saving, and analysis are processed
+    console.log('   ⏳ WAITING 2 SECONDS FOR CONVERSATION PROCESSING...');
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    console.log('   ✅ CONVERSATION PROCESSING WAIT COMPLETED');
+    
     try {
       if (mode === 'form_completion') {
+        console.log('   📝 FORM COMPLETION MODE - GENERATING ANSWERS');
         // Generate answers from conversation
         if (!currentSessionId) {
+          console.log('   ❌ NO SESSION ID FOUND');
           addMessage('assistant', 'No active session found. Please try again.');
           return;
         }
 
+        console.log('   🌐 CALLING API: /api/generate-form-answers');
         const response = await fetch('http://localhost:3001/api/generate-form-answers', {
           method: 'POST',
           headers: {
@@ -210,30 +227,44 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
           })
         });
 
+        console.log('   📨 API RESPONSE STATUS:', response.status);
         if (response.ok) {
           const answersData = await response.json();
+          console.log('   ✅ ANSWERS GENERATED:', answersData);
           if (onAnswersGenerated) {
             onAnswersGenerated(answersData.answers || {});
           }
+          console.log('   🚪 CLOSING VOICE ASSISTANT');
           onClose();
         } else {
+          const errorText = await response.text();
+          console.log('   ❌ API ERROR:', errorText);
           addMessage('assistant', 'Failed to generate answers. Please try again.');
         }
       } else {
+        console.log('   📋 FORM CREATION MODE - GENERATING FORM');
         // Generate form from conversation
+        console.log('   🌐 CALLING API: /api/generate-form');
         const response = await fetch('http://localhost:3001/api/generate-form');
+        console.log('   📨 API RESPONSE STATUS:', response.status);
+        
         if (response.ok) {
           const formData = await response.json();
+          console.log('   ✅ FORM GENERATED:', formData);
           if (onFormGenerated) {
+            console.log('   🔄 CALLING onFormGenerated CALLBACK');
             onFormGenerated(formData);
           }
+          console.log('   🚪 CLOSING VOICE ASSISTANT');
           onClose();
         } else {
+          const errorText = await response.text();
+          console.log('   ❌ API ERROR:', errorText);
           addMessage('assistant', 'Failed to generate form. Please try again.');
         }
       }
     } catch (error) {
-      console.error('Error generating:', error);
+      console.error('❌ FRONTEND ERROR GENERATING:', error);
       addMessage('assistant', `Error generating ${mode === 'form_completion' ? 'answers' : 'form'}. Please check the connection.`);
     }
   };
@@ -241,8 +272,8 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
   // Initialize empty message
   useEffect(() => {
     const initialMessage = mode === 'form_completion' 
-      ? 'Connect to start answering form questions via voice'
-      : 'Start a conversation to see messages here';
+      ? 'Connect to start answering form questions via voice. When finished, click "End Call & Generate Answers".'
+      : 'Connect to start describing your form. When finished, click "End Call & Generate Form".';
       
     setMessages([{
       type: 'assistant',
@@ -254,7 +285,9 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
   // Cleanup on unmount
   useEffect(() => {
     return () => {
-      disconnect();
+      if (clientRef.current) {
+        clientRef.current.disconnect();
+      }
     };
   }, []);
 
@@ -293,42 +326,32 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
       </CardHeader>
       
       <CardContent className="space-y-4">
-        {/* Connection Controls - Same logic as POC */}
+        {/* Connection Controls */}
         <div className="flex gap-2 justify-center">
-          <Button 
-            onClick={connectToAssistant}
-            disabled={connectionState === 'connected' || connectionState === 'connecting' || !sdkLoaded}
-            className="flex items-center gap-2"
-          >
-            {connectionState === 'connecting' ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                Connecting...
-              </>
-            ) : (
-              <>
-                <Phone className="w-4 h-4" />
-                Connect
-              </>
-            )}
-          </Button>
-          
-          <Button 
-            onClick={disconnect}
-            disabled={connectionState === 'disconnected'}
-            variant="outline"
-            className="flex items-center gap-2"
-          >
-            <PhoneOff className="w-4 h-4" />
-            Disconnect
-          </Button>
-          
-          {connectionState === 'connected' && (
+          {connectionState === 'connecting' ? (
             <Button 
-              onClick={generateForm}
+              disabled={true}
+              className="flex items-center gap-2"
+            >
+              <Loader2 className="w-4 h-4 animate-spin" />
+              Connecting...
+            </Button>
+          ) : connectionState === 'connected' ? (
+            <Button 
+              onClick={endCallAndGenerateForm}
               className="flex items-center gap-2 bg-green-600 hover:bg-green-700"
             >
-              {mode === 'form_completion' ? 'Generate Answers' : 'Generate Form'}
+              <PhoneOff className="w-4 h-4" />
+              End Call & {mode === 'form_completion' ? 'Generate Answers' : 'Generate Form'}
+            </Button>
+          ) : (
+            <Button 
+              onClick={connectToAssistant}
+              disabled={!sdkLoaded}
+              className="flex items-center gap-2"
+            >
+              <Phone className="w-4 h-4" />
+              Connect
             </Button>
           )}
         </div>
@@ -362,15 +385,17 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
           </div>
         </ScrollArea>
 
-        {/* Close Button */}
-        <div className="flex justify-center">
-          <Button 
-            onClick={onClose} 
-            variant="outline"
-          >
-            Close Assistant
-          </Button>
-        </div>
+        {/* Close Button - Only show if not connected */}
+        {connectionState === 'disconnected' && (
+          <div className="flex justify-center">
+            <Button 
+              onClick={onClose} 
+              variant="outline"
+            >
+              Close Assistant
+            </Button>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
