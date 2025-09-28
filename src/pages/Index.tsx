@@ -60,13 +60,18 @@ const Index = () => {
   // Users will be redirected to /auth if not logged in
 
   return (
-    <div className="min-h-screen bg-gradient-subtle">
-      <AppHeader currentView={currentView} onAction={handleAction} />
+    <div className="min-h-screen bg-gradient-subtle relative">
+      {/* Top navbar on all pages */}
+      <AppHeader 
+        onAction={handleAction}
+        onEditForm={handleEditForm}
+        onViewDashboard={handleViewDashboard}
+      />
       
-      <div className="">
+      <div className="pt-24">
         {currentView === 'home' && (
           <HeroSection 
-            onAction={handleAction} 
+            onAction={handleAction}
             onEditForm={handleEditForm}
             onViewDashboard={handleViewDashboard}
           />

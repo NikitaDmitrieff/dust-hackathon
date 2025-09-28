@@ -459,20 +459,6 @@ const FormBuilder = ({ onBack, editingFormId }: FormBuilderProps) => {
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent transform -skew-x-12 animate-pulse opacity-0 hover:opacity-100 transition-opacity duration-300"></div>
             </Button>
           </div>
-
-          {/* Back Button */}
-          {onBack && (
-            <div className="p-6 pt-0">
-              <Button 
-                onClick={onBack}
-                variant="ghost"
-                size="sm"
-                className="hover:bg-muted/50"
-              >
-                ← Back to Home
-              </Button>
-            </div>
-          )}
         </div>
 
         {/* Right Section - Question Editor */}
@@ -627,65 +613,31 @@ const FormBuilder = ({ onBack, editingFormId }: FormBuilderProps) => {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Link className="w-5 h-5 text-primary" />
-              Your Form Code is Ready!
+              Your Form is Ready!
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <div className="space-y-2">
-              <p className="text-sm font-medium text-foreground">Form Code:</p>
-              <div className="flex items-center space-x-2">
-                <div className="flex-1 p-3 bg-muted rounded-lg border">
-                  <code className="text-lg font-mono text-foreground break-all">
-                    {publishedFormId || ''}
-                  </code>
-                </div>
-                <Button
-                  size="sm"
-                  onClick={() => {
-                    if (publishedFormId) {
-                      navigator.clipboard.writeText(publishedFormId);
-                      setIsCopied(true);
-                      toast({
-                        title: "Copied!",
-                        description: "Form code copied to clipboard",
-                      });
-                      setTimeout(() => setIsCopied(false), 2000);
-                    }
-                  }}
-                  className="flex items-center gap-2 px-3"
-                >
-                  {isCopied ? (
-                    <Check className="w-4 h-4 text-green-500" />
-                  ) : (
-                    <Copy className="w-4 h-4" />
-                  )}
-                  {isCopied ? 'Copied!' : 'Copy'}
-                </Button>
-              </div>
-            </div>
+            <p className="text-sm text-muted-foreground text-center">
+              Your form has been published successfully. Share the link below to start collecting responses.
+            </p>
             
-            <div className="space-y-2">
-              <p className="text-sm font-medium text-foreground">Form Link:</p>
+            <div className="space-y-3">
               <div className="flex items-center space-x-2">
-                <div className="flex-1 p-3 bg-muted rounded-lg border">
+                <div className="flex-1 p-4 bg-muted rounded-lg border">
                   <code className="text-sm text-foreground break-all">
                     {publishedFormId ? `${window.location.origin}/?id=${publishedFormId}` : ''}
                   </code>
                 </div>
                 <Button
-                  size="sm"
+                  size="lg"
                   onClick={copyFormLink}
-                  className="flex items-center gap-2 px-3"
+                  className="flex items-center gap-2 px-6 bg-primary hover:bg-primary/90 text-primary-foreground"
                 >
                   <Copy className="w-4 h-4" />
                   Copy Link
                 </Button>
               </div>
             </div>
-            
-            <p className="text-sm text-muted-foreground">
-              Share the code or link to collect responses for your form.
-            </p>
           </div>
         </DialogContent>
       </Dialog>
