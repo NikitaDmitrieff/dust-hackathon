@@ -14,7 +14,10 @@ class OpenAIRealtimeClient {
     this.onAssistantAudio = options.onAssistantAudio || (() => {});
     this.onAssistantResponseStart = options.onAssistantResponseStart || (() => {});
     this.onConnectionChange = options.onConnectionChange || (() => {});
+    this.onSessionStarted = options.onSessionStarted || (() => {});
     this.onError = options.onError || console.error;
+    this.mode = options.mode || 'form_creation';
+    this.questions = options.questions || [];
     
     // Internal state
     this.ws = null;
@@ -26,6 +29,7 @@ class OpenAIRealtimeClient {
     this.nextPlaybackTime = 0;
     this.activeAudioSources = new Set();
     this.currentResponseId = null;
+    this.sessionId = null;
     this.isConnected = false;
     this.isRecording = false;
     this.autoStartRecording = options.autoStartRecording !== undefined ? options.autoStartRecording : true;
@@ -92,10 +96,12 @@ class OpenAIRealtimeClient {
       
       return new Promise((resolve, reject) => {
         this.ws.onopen = () => {
-          // Send ephemeral token for authentication
+          // Send ephemeral token for authentication with mode and questions
           this.ws.send(JSON.stringify({
             type: 'connect',
-            ephemeralToken: sessionData.client_secret.value
+            ephemeralToken: sessionData.client_secret.value,
+            mode: this.mode,
+            questions: this.questions
           }));
         };
         
@@ -105,7 +111,16 @@ class OpenAIRealtimeClient {
             
             if (message.type === 'connected') {
               this.isConnected = true;
+              
+              // Use session ID from backend if provided, otherwise generate one
+              if (message.session_id) {
+                this.sessionId = message.session_id;
+              } else if (!this.sessionId) {
+                this.sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+              }
+              
               this.onConnectionChange('connected');
+              this.onSessionStarted(this.sessionId);
               
               // Session is now configured by the backend automatically
               // No need to send session.update from frontend
@@ -157,6 +172,7 @@ class OpenAIRealtimeClient {
     if (this.ws) {
       this.ws.close();
     }
+    this.sessionId = null;
     this.cleanup();
     this.onConnectionChange('disconnected');
   }

@@ -7,7 +7,7 @@ import json
 import asyncio
 import websockets
 from fastapi import WebSocket, WebSocketDisconnect
-from prompts import DEFAULT_SESSION_CONFIG
+from prompts import DEFAULT_SESSION_CONFIG, FORM_COMPLETION_INSTRUCTIONS
 from conversation_logger import ConversationLogger
 
 OPENAI_WSS_URL = 'wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview-2024-12-17'
@@ -16,7 +16,7 @@ class WebSocketHandler:
     def __init__(self, conversation_logger: ConversationLogger = None):
         self.conversation_logger = conversation_logger or ConversationLogger()
     
-    async def establish_openai_connection(self, ephemeral_token: str, session_id: str, client_ws: WebSocket):
+    async def establish_openai_connection(self, ephemeral_token: str, session_id: str, client_ws: WebSocket, mode: str = "form_creation", questions: list = None):
         """Establish WebSocket connection to OpenAI Realtime API"""
         try:
             openai_ws = await websockets.connect(
@@ -27,12 +27,22 @@ class WebSocketHandler:
                 }
             )
             
-            await client_ws.send_json({'type': 'connected'})
+            await client_ws.send_json({'type': 'connected', 'session_id': session_id})
             
             # Configure session with backend settings
+            session_config = DEFAULT_SESSION_CONFIG.copy()
+            
+            # Customize instructions based on mode
+            if mode == "form_completion" and questions:
+                questions_text = "\n".join([
+                    f"- {q.get('question', '')} (Type: {q.get('type_answer', q.get('type', 'text'))})"
+                    for q in questions
+                ])
+                session_config['instructions'] = FORM_COMPLETION_INSTRUCTIONS.format(questions=questions_text)
+            
             session_update_message = {
                 'type': 'session.update',
-                'session': DEFAULT_SESSION_CONFIG.copy()
+                'session': session_config
             }
             await openai_ws.send(json.dumps(session_update_message))
             

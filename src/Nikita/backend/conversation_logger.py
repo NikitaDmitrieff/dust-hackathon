@@ -204,3 +204,55 @@ class ConversationLogger:
             
         except Exception as error:
             pass
+    
+    async def get_session_transcript(self, session_id: str) -> Optional[str]:
+        """Get the formatted transcript for a session."""
+        try:
+            # First check if session is still active
+            if session_id in self.active_discussions:
+                discussion = self.active_discussions[session_id]
+                return self.format_conversation(discussion.conversation)
+            
+            # Otherwise, look for saved conversation file
+            conversation_files = list(DISCUSSIONS_DIR.glob(f"conversation_{session_id}_*.txt"))
+            if not conversation_files:
+                return None
+            
+            # Get the most recent file for this session
+            latest_file = max(conversation_files, key=lambda x: x.stat().st_mtime)
+            
+            async with aiofiles.open(latest_file, 'r', encoding='utf8') as f:
+                content = await f.read()
+            
+            # Extract just the conversation part (after the header)
+            lines = content.split('\n')
+            start_index = 0
+            for i, line in enumerate(lines):
+                if line.startswith('=' * 80):
+                    start_index = i + 1
+                    break
+            
+            return '\n'.join(lines[start_index:]).strip()
+            
+        except Exception as error:
+            print(f"Error getting session transcript: {error}")
+            return None
+    
+    async def save_form_completion_analysis(self, session_id: str, analysis: str):
+        """Save form completion analysis to a dedicated file."""
+        try:
+            analysis_filename = f"{session_id}_form_completion_analysis.txt"
+            analysis_path = ANALYSIS_DIR / analysis_filename
+            
+            timestamp = datetime.now().isoformat()
+            content = f"FORM COMPLETION ANALYSIS\n{'='*25}\n"
+            content += f"Session ID: {session_id}\n"
+            content += f"Analyzed: {timestamp}\n\n"
+            content += analysis
+            
+            async with aiofiles.open(analysis_path, 'w', encoding='utf8') as f:
+                await f.write(content)
+                
+        except Exception as error:
+            print(f"Error saving form completion analysis: {error}")
+            pass

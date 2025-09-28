@@ -13,8 +13,11 @@ declare global {
 
 interface VoiceAssistantProps {
   formId: string;
-  onFormGenerated: (formData: any) => void;
+  onFormGenerated?: (formData: any) => void;
+  onAnswersGenerated?: (answers: any) => void;
   onClose: () => void;
+  mode?: 'form_creation' | 'form_completion';
+  questions?: any[];
 }
 
 interface Message {
@@ -26,12 +29,16 @@ interface Message {
 const VoiceAssistant: React.FC<VoiceAssistantProps> = ({ 
   formId, 
   onFormGenerated, 
-  onClose 
+  onAnswersGenerated,
+  onClose,
+  mode = 'form_creation',
+  questions = []
 }) => {
   const [connectionState, setConnectionState] = useState<'disconnected' | 'connecting' | 'connected' | 'error'>('disconnected');
   const [messages, setMessages] = useState<Message[]>([]);
   const [isRecording, setIsRecording] = useState(false);
   const [sdkLoaded, setSdkLoaded] = useState(false);
+  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
   
   const clientRef = useRef<any>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -123,10 +130,16 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
     clientRef.current = new window.OpenAIRealtimeClient({
       serverUrl: 'http://localhost:3001',
       wsUrl: 'ws://localhost:3001/ws',
+      mode: mode,
+      questions: questions,
       
       onConnectionChange: (state: string) => {
         setConnectionState(state as any);
         setIsRecording(state === 'connected');
+      },
+      
+      onSessionStarted: (sessionId: string) => {
+        setCurrentSessionId(sessionId);
       },
       
       onUserTranscript: (transcript: string) => {
@@ -179,28 +192,64 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
 
   const generateForm = async () => {
     try {
-      const response = await fetch('http://localhost:3001/api/generate-form');
-      if (response.ok) {
-        const formData = await response.json();
-        onFormGenerated(formData);
-        onClose();
+      if (mode === 'form_completion') {
+        // Generate answers from conversation
+        if (!currentSessionId) {
+          addMessage('assistant', 'No active session found. Please try again.');
+          return;
+        }
+
+        const response = await fetch('http://localhost:3001/api/generate-form-answers', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            session_id: currentSessionId,
+            questions: questions
+          })
+        });
+
+        if (response.ok) {
+          const answersData = await response.json();
+          if (onAnswersGenerated) {
+            onAnswersGenerated(answersData.answers || {});
+          }
+          onClose();
+        } else {
+          addMessage('assistant', 'Failed to generate answers. Please try again.');
+        }
       } else {
-        addMessage('assistant', 'Failed to generate form. Please try again.');
+        // Generate form from conversation
+        const response = await fetch('http://localhost:3001/api/generate-form');
+        if (response.ok) {
+          const formData = await response.json();
+          if (onFormGenerated) {
+            onFormGenerated(formData);
+          }
+          onClose();
+        } else {
+          addMessage('assistant', 'Failed to generate form. Please try again.');
+        }
       }
     } catch (error) {
-      console.error('Error generating form:', error);
-      addMessage('assistant', 'Error generating form. Please check the connection.');
+      console.error('Error generating:', error);
+      addMessage('assistant', `Error generating ${mode === 'form_completion' ? 'answers' : 'form'}. Please check the connection.`);
     }
   };
 
   // Initialize empty message
   useEffect(() => {
+    const initialMessage = mode === 'form_completion' 
+      ? 'Connect to start answering form questions via voice'
+      : 'Start a conversation to see messages here';
+      
     setMessages([{
       type: 'assistant',
-      content: 'Start a conversation to see messages here',
+      content: initialMessage,
       timestamp: new Date()
     }]);
-  }, []);
+  }, [mode]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -236,7 +285,10 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
           Voice Assistant
         </CardTitle>
         <p className="text-muted-foreground text-sm">
-          Tell the assistant what kind of form you want to create
+          {mode === 'form_completion' 
+            ? 'Answer the form questions by speaking naturally with the assistant'
+            : 'Tell the assistant what kind of form you want to create'
+          }
         </p>
       </CardHeader>
       
@@ -276,7 +328,7 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
               onClick={generateForm}
               className="flex items-center gap-2 bg-green-600 hover:bg-green-700"
             >
-              Generate Form
+              {mode === 'form_completion' ? 'Generate Answers' : 'Generate Form'}
             </Button>
           )}
         </div>

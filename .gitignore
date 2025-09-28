@@ -12,6 +12,9 @@ dist
 dist-ssr
 *.local
 
+src/Nikita/backend/discussions/*
+src/Nikita/backend/analysis/*
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

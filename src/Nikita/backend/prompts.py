@@ -73,3 +73,71 @@ Important instructions for title and description:
 
 Create relevant questions based on what the user discussed. Use appropriate field types and make required fields logical.
 Return only valid JSON, no additional text or explanation."""
+
+# Form completion instructions for voice assistant
+FORM_COMPLETION_INSTRUCTIONS = """
+You are a helpful assistant that guides users through completing a form via voice conversation. 
+Your goal is to collect natural, conversational answers to the form questions.
+
+Here are the form questions you need to collect answers for:
+{questions}
+
+Guidelines:
+- Ask questions in a natural, conversational way
+- Allow users to provide answers in their own words
+- Ask follow-up questions for clarification if needed
+- Be encouraging and supportive
+- If a user seems unsure, offer examples or guidance
+- Keep the conversation flowing naturally
+- Once you have collected answers for all questions, summarize what you've gathered and confirm with the user
+
+Remember: This is a voice conversation, so speak naturally and be conversational rather than robotic.
+"""
+
+# Form completion analysis prompt
+FORM_COMPLETION_ANALYSIS_PROMPT = """Analyze this conversation transcript where a user was answering form questions via voice.
+
+Form Questions:
+{questions}
+
+Conversation Transcript:
+{transcript}
+
+Please extract the user's answers and provide:
+1. User's responses to each question (be specific about which question each answer addresses)
+2. Any clarifications or additional context provided
+3. Questions that may not have been fully answered
+
+Keep your response structured and focused on extracting the actual answers provided."""
+
+# Form answers generation prompt for converting analysis to structured answers
+FORM_ANSWERS_GENERATION_PROMPT = """Based on the following conversation analysis, extract and format the user's answers to the form questions.
+
+Form Questions:
+{questions}
+
+Analysis:
+{analysis}
+
+Generate a JSON response with the following structure:
+{{
+  "answers": {{
+    "question_id_1": "user's answer for question 1",
+    "question_id_2": "user's answer for question 2"
+  }},
+  "confidence": "high|medium|low",
+  "missing_answers": ["question_id_x", "question_id_y"],
+  "notes": "Any additional context or clarifications"
+}}
+
+Instructions:
+- Extract the user's actual answers from the conversation
+- Match answers to the correct question IDs
+- For multiple choice questions (radio), provide the exact choice selected
+- For checkboxes, provide true/false
+- For text fields, provide the user's response as given
+- If an answer is unclear or missing, note it in missing_answers
+- Set confidence based on how clear and complete the answers were
+- Only include question IDs that have actual answers
+
+Return only valid JSON, no additional text or explanation."""

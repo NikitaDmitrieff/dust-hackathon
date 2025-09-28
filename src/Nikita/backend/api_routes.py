@@ -101,3 +101,27 @@ async def generate_form_from_latest_session():
             status_code=500,
             detail=f"Failed to generate form: {str(error)}"
         )
+
+async def generate_form_answers_from_session(session_id: str, questions: list):
+    """Generate form answers from a specific conversation session"""
+    try:
+        from form_completion_processor import process_form_completion_session
+        
+        # Process the session to extract answers
+        result = await process_form_completion_session(session_id, questions)
+        
+        if "error" in result:
+            raise HTTPException(
+                status_code=500,
+                detail=f"Form completion error: {result['error']}"
+            )
+        
+        return result
+        
+    except HTTPException:
+        raise
+    except Exception as error:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to generate form answers: {str(error)}"
+        )
