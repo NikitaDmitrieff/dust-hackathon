@@ -444,7 +444,7 @@ const AiChartsBento: React.FC<AiChartsBentoProps> = ({ formId }) => {
     <TooltipProvider>
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900">
         <div className="container mx-auto p-6 space-y-8">
-          {/* Hero Section - Bento Grid */}
+          {/* Hero Section */}
           <div className="space-y-6">
             <div className="text-center">
               <h1 className="text-4xl font-bold tracking-tight text-foreground mb-2">
@@ -455,7 +455,7 @@ const AiChartsBento: React.FC<AiChartsBentoProps> = ({ formId }) => {
               </p>
             </div>
 
-            {/* Christopher Analysis Section */}
+            {/* Christopher Analysis or Empty State Section */}
             {results.length === 0 && !isLoading && (
               <div className="text-center py-12">
                 {isAnalysisLoading ? (
@@ -471,6 +471,7 @@ const AiChartsBento: React.FC<AiChartsBentoProps> = ({ formId }) => {
                   </div>
                 ) : analysisHtml ? (
                   <div 
+                    ref={analysisContainerRef}
                     className="text-left max-w-4xl mx-auto"
                     dangerouslySetInnerHTML={{ __html: analysisHtml }}
                   />
@@ -492,6 +493,7 @@ const AiChartsBento: React.FC<AiChartsBentoProps> = ({ formId }) => {
               </div>
             )}
 
+            {/* Input Bento Grid */}
             <BentoGrid>
               {/* Tile A: Main Query Input (2x1) */}
               <BentoTile cols={2} rows={1} className="space-y-6">
@@ -609,88 +611,50 @@ const AiChartsBento: React.FC<AiChartsBentoProps> = ({ formId }) => {
                   </div>
                 </div>
               </BentoTile>
-          </BentoGrid>
-        </div>
-
-        {/* Results Section */}
-        {(results.length > 0 || isLoading) && (
-          <div className="space-y-6">
-            <div className="flex items-center gap-3">
-              <h2 className="text-2xl font-bold">
-                {results.length > 0 && !isLoading ? 'Analyse Automatique' : 'Génération en cours...'}
-              </h2>
-              {results.length > 0 && (
-                <Badge variant="outline">
-                  {results.length} graphique{results.length > 1 ? 's' : ''}
-                </Badge>
-              )}
-            </div>
-
-            {isLoading ? (
-              // Loading skeletons
-              <BentoResultsGrid>
-                {[1, 2, 3].map((i) => (
-                  <Card key={i} className="animate-pulse">
-                    <CardHeader>
-                      <div className="h-6 bg-muted rounded w-3/4"></div>
-                      <div className="h-4 bg-muted rounded w-1/2"></div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="h-64 bg-muted rounded mb-4"></div>
-                      <div className="flex gap-2">
-                        <div className="h-8 bg-muted rounded w-16"></div>
-                        <div className="h-8 bg-muted rounded w-16"></div>
-                        <div className="h-8 bg-muted rounded w-16"></div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </BentoResultsGrid>
-            ) : (
-              // Actual results
-              <BentoResultsGrid>
-                {results.map((result, index) => (
-                  <AiChartCard key={index} result={result} onDuplicate={handleDuplicate} />
-                ))}
-              </BentoResultsGrid>
-            )}
+            </BentoGrid>
           </div>
-        )}
 
-          {/* Empty State or Christopher Analysis */}
-          {results.length === 0 && !isLoading && (
-            <div className="text-center py-12">
-              {isAnalysisLoading ? (
-                <div>
-                  <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Loader2 className="w-8 h-8 text-primary animate-spin" />
-                  </div>
-                  <h3 className="text-lg font-semibold mb-2">Analyse en cours...</h3>
-                  <p className="text-muted-foreground max-w-md mx-auto mb-4">
-                    Christopher analyse les données de votre formulaire pour générer 
-                    des insights personnalisés.
-                  </p>
-                </div>
-              ) : analysisHtml ? (
-                <div 
-                  ref={analysisContainerRef}
-                  className="text-left max-w-4xl mx-auto"
-                  dangerouslySetInnerHTML={{ __html: analysisHtml }}
-                />
+          {/* Results Section */}
+          {(results.length > 0 || isLoading) && (
+            <div className="space-y-6">
+              <div className="flex items-center gap-3">
+                <h2 className="text-2xl font-bold">
+                  {results.length > 0 && !isLoading ? 'Analyse Automatique' : 'Génération en cours...'}
+                </h2>
+                {results.length > 0 && (
+                  <Badge variant="outline">
+                    {results.length} graphique{results.length > 1 ? 's' : ''}
+                  </Badge>
+                )}
+              </div>
+
+              {isLoading ? (
+                // Loading skeletons
+                <BentoResultsGrid>
+                  {[1, 2, 3].map((i) => (
+                    <Card key={i} className="animate-pulse">
+                      <CardHeader>
+                        <div className="h-6 bg-muted rounded w-3/4"></div>
+                        <div className="h-4 bg-muted rounded w-1/2"></div>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="h-64 bg-muted rounded mb-4"></div>
+                        <div className="flex gap-2">
+                          <div className="h-8 bg-muted rounded w-16"></div>
+                          <div className="h-8 bg-muted rounded w-16"></div>
+                          <div className="h-8 bg-muted rounded w-16"></div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </BentoResultsGrid>
               ) : (
-                <div>
-                  <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <BarChart3 className="w-8 h-8 text-primary" />
-                  </div>
-                  <h3 className="text-lg font-semibold mb-2">Analyse en cours...</h3>
-                  <p className="text-muted-foreground max-w-md mx-auto mb-4">
-                    L'IA analyse automatiquement les données de votre formulaire pour générer 
-                    les visualisations les plus pertinentes.
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    <strong>Astuce :</strong> activez le Mode démo pour voir un exemple avec des données factices.
-                  </p>
-                </div>
+                // Actual results
+                <BentoResultsGrid>
+                  {results.map((result, index) => (
+                    <AiChartCard key={index} result={result} onDuplicate={handleDuplicate} />
+                  ))}
+                </BentoResultsGrid>
               )}
             </div>
           )}

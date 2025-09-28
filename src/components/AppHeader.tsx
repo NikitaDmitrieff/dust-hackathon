@@ -13,9 +13,14 @@ const AppHeader = ({ onAction, onEditForm, onViewDashboard }: AppHeaderProps) =>
         {/* Logo */}
         <button 
           onClick={() => onAction('home')}
-          className="text-2xl font-bold font-display text-foreground hover:text-primary transition-colors"
+          className="flex items-center hover:opacity-80 transition-opacity"
         >
-          Scribe <span className="text-primary">Form</span>
+          <img 
+            src="/logo_txt.png" 
+            alt="Scribe Form" 
+            className="w-auto m-0 p-0" // Added m-0 and p-0
+            style={{ height: '4rem' }}
+          />
         </button>
 
         {/* Navigation Bubble */}
