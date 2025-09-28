@@ -1,118 +1,223 @@
 import { Button } from "@/components/ui/button";
-import { LogOut } from "lucide-react";
-import FormsGrid from "@/components/FormsGrid";
-import { useAuth } from "@/contexts/AuthContext";
+import { Play, FileText, CheckSquare, Calendar, MessageSquare, Hash, Mail, User, BarChart3, Star, Heart, Zap, Target, Globe, Lock, Clock, Sparkles, Award, Bookmark } from "lucide-react";
+import MinimalFormsPreview from "@/components/MinimalFormsPreview";
 
 interface HeroSectionProps {
   onAction: (action: 'create' | 'fill' | 'admin') => void;
   onEditForm: (formId: string) => void;
   onViewDashboard: (formId: string) => void;
+  onDeleteForm?: (formId: string) => void;
 }
 
-const HeroSection = ({ onAction, onEditForm, onViewDashboard }: HeroSectionProps) => {
-  const { user, signOut } = useAuth();
-
-  const handleSignOut = () => {
-    signOut();
-  };
+const HeroSection = ({ onAction, onEditForm, onViewDashboard, onDeleteForm }: HeroSectionProps) => {
   return (
-    <div className="py-16 flex flex-col items-center justify-center px-4">
-      <div className="max-w-4xl mx-auto text-center space-y-8">
-        {/* User Info and Sign Out */}
-        {user && (
-          <div className="flex justify-center items-center gap-4 mb-6">
-            <span className="text-sm text-muted-foreground">
-              Signed in as: {user.email}
-            </span>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleSignOut}
-              className="flex items-center gap-2"
-            >
-              <LogOut className="w-4 h-4" />
-              Sign Out
-            </Button>
-          </div>
-        )}
-
-        {/* Hero Text */}
-        <div className="space-y-6">
-          <h1 className="text-6xl md:text-7xl font-bold font-display tracking-tight text-foreground">
-            Scribe
-            <span className="text-primary"> Form</span>
-          </h1>
-          <p className="text-xl md:text-2xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-            Create intelligent forms with AI assistance. Collect responses seamlessly. 
-            Analyze insights effortlessly.
-          </p>
+    <div className="relative">
+      {/* Hero Section with Background */}
+      <div className="min-h-[calc(100vh-5rem)] flex flex-col justify-center px-4 relative bg-gradient-to-b from-background via-background/95 to-background/90">
+        {/* Decorative Elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-primary/5 rounded-full blur-3xl"></div>
+          <div className="absolute top-1/3 right-1/4 w-48 h-48 bg-accent/10 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-1/3 left-1/3 w-32 h-32 bg-secondary/10 rounded-full blur-3xl"></div>
         </div>
 
-        {/* Two Main Action Buttons */}
-        <div className="flex flex-col md:flex-row gap-6 justify-center items-center pt-8">
-          <Button 
-            variant="hero" 
-            size="xl"
-            onClick={() => onAction('create')}
-            className="w-full md:w-auto min-w-[200px]"
-          >
-            Create Forms
-          </Button>
+        {/* Animated Form Icons - Behind Everything */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+          {/* Spread across the entire hero section */}
           
-          <Button 
-            variant="minimal" 
-            size="xl"
-            onClick={() => onAction('admin')}
-            className="w-full md:w-auto min-w-[200px]"
-          >
-            Admin Panel
-          </Button>
+          {/* Top Row */}
+          <div className="absolute top-16 left-[5%]">
+            <div className="w-16 h-16 bg-card/60 backdrop-blur-sm rounded-2xl flex items-center justify-center border border-border/20 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 animate-pulse-glow">
+              <FileText className="w-8 h-8 text-primary/70" />
+            </div>
+          </div>
+          
+          <div className="absolute top-20 left-[20%]">
+            <div className="w-12 h-12 bg-card/50 backdrop-blur-sm rounded-xl flex items-center justify-center border border-border/15 shadow-md hover:shadow-lg transition-all duration-300 hover:scale-110">
+              <CheckSquare className="w-6 h-6 text-green-400/70" />
+            </div>
+          </div>
+          
+          <div className="absolute top-12 left-[35%]">
+            <div className="w-10 h-10 bg-card/40 backdrop-blur-sm rounded-lg flex items-center justify-center border border-border/10 shadow-sm hover:shadow-md transition-all duration-300 hover:scale-110">
+              <Sparkles className="w-5 h-5 text-violet-400/70" />
+            </div>
+          </div>
+          
+          <div className="absolute top-24 right-[35%]">
+            <div className="w-14 h-14 bg-card/55 backdrop-blur-sm rounded-xl flex items-center justify-center border border-border/18 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 animate-pulse-glow animation-delay-500">
+              <MessageSquare className="w-7 h-7 text-blue-400/70" />
+            </div>
+          </div>
+          
+          <div className="absolute top-16 right-[20%]">
+            <div className="w-12 h-12 bg-card/50 backdrop-blur-sm rounded-xl flex items-center justify-center border border-border/15 shadow-md hover:shadow-lg transition-all duration-300 hover:scale-110">
+              <Calendar className="w-6 h-6 text-purple-400/70" />
+            </div>
+          </div>
+          
+          <div className="absolute top-20 right-[5%]">
+            <div className="w-16 h-16 bg-card/60 backdrop-blur-sm rounded-2xl flex items-center justify-center border border-border/20 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 animate-pulse-glow animation-delay-300">
+              <BarChart3 className="w-8 h-8 text-orange-400/70" />
+            </div>
+          </div>
+
+          {/* Middle Row */}
+          <div className="absolute top-1/2 left-[3%] transform -translate-y-1/2">
+            <div className="w-18 h-18 bg-card/65 backdrop-blur-sm rounded-2xl flex items-center justify-center border border-border/25 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-110 animate-pulse-glow animation-delay-700">
+              <Mail className="w-9 h-9 text-red-400/70" />
+            </div>
+          </div>
+          
+          <div className="absolute top-1/2 left-[15%] transform -translate-y-1/2">
+            <div className="w-10 h-10 bg-card/40 backdrop-blur-sm rounded-lg flex items-center justify-center border border-border/10 shadow-sm hover:shadow-md transition-all duration-300 hover:scale-110">
+              <User className="w-5 h-5 text-cyan-400/70" />
+            </div>
+          </div>
+          
+          <div className="absolute top-1/2 right-[15%] transform -translate-y-1/2">
+            <div className="w-12 h-12 bg-card/50 backdrop-blur-sm rounded-xl flex items-center justify-center border border-border/15 shadow-md hover:shadow-lg transition-all duration-300 hover:scale-110">
+              <Hash className="w-6 h-6 text-pink-400/70" />
+            </div>
+          </div>
+          
+          <div className="absolute top-1/2 right-[3%] transform -translate-y-1/2">
+            <div className="w-18 h-18 bg-card/65 backdrop-blur-sm rounded-2xl flex items-center justify-center border border-border/25 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-110 animate-pulse-glow animation-delay-1000">
+              <Globe className="w-9 h-9 text-indigo-400/70" />
+            </div>
+          </div>
+
+          {/* Bottom Row */}
+          <div className="absolute bottom-32 left-[8%]">
+            <div className="w-14 h-14 bg-card/55 backdrop-blur-sm rounded-xl flex items-center justify-center border border-border/18 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 animate-pulse-glow animation-delay-200">
+              <Clock className="w-7 h-7 text-teal-400/70" />
+            </div>
+          </div>
+          
+          <div className="absolute bottom-28 left-[25%]">
+            <div className="w-10 h-10 bg-card/40 backdrop-blur-sm rounded-lg flex items-center justify-center border border-border/10 shadow-sm hover:shadow-md transition-all duration-300 hover:scale-110">
+              <Heart className="w-5 h-5 text-rose-400/70" />
+            </div>
+          </div>
+          
+          <div className="absolute bottom-36 left-[40%]">
+            <div className="w-12 h-12 bg-card/50 backdrop-blur-sm rounded-xl flex items-center justify-center border border-border/15 shadow-md hover:shadow-lg transition-all duration-300 hover:scale-110">
+              <Star className="w-6 h-6 text-yellow-400/70" />
+            </div>
+          </div>
+          
+          <div className="absolute bottom-24 right-[40%]">
+            <div className="w-16 h-16 bg-card/60 backdrop-blur-sm rounded-2xl flex items-center justify-center border border-border/20 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 animate-pulse-glow animation-delay-800">
+              <Award className="w-8 h-8 text-amber-400/70" />
+            </div>
+          </div>
+          
+          <div className="absolute bottom-32 right-[25%]">
+            <div className="w-12 h-12 bg-card/50 backdrop-blur-sm rounded-xl flex items-center justify-center border border-border/15 shadow-md hover:shadow-lg transition-all duration-300 hover:scale-110">
+              <Target className="w-6 h-6 text-emerald-400/70" />
+            </div>
+          </div>
+          
+          <div className="absolute bottom-28 right-[8%]">
+            <div className="w-14 h-14 bg-card/55 backdrop-blur-sm rounded-xl flex items-center justify-center border border-border/18 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 animate-pulse-glow animation-delay-400">
+              <Lock className="w-7 h-7 text-slate-400/70" />
+            </div>
+          </div>
+
+          {/* Additional Scattered Icons for More Coverage */}
+          <div className="absolute top-[30%] left-[12%]">
+            <div className="w-8 h-8 bg-card/35 backdrop-blur-sm rounded-lg flex items-center justify-center border border-border/8 shadow-sm hover:shadow-md transition-all duration-300 hover:scale-110">
+              <Zap className="w-4 h-4 text-yellow-300/70" />
+            </div>
+          </div>
+          
+          <div className="absolute top-[70%] right-[12%]">
+            <div className="w-8 h-8 bg-card/35 backdrop-blur-sm rounded-lg flex items-center justify-center border border-border/8 shadow-sm hover:shadow-md transition-all duration-300 hover:scale-110">
+              <Bookmark className="w-4 h-4 text-blue-300/70" />
+            </div>
+          </div>
+          
+          <div className="absolute top-[25%] right-[25%]">
+            <div className="w-10 h-10 bg-card/40 backdrop-blur-sm rounded-lg flex items-center justify-center border border-border/10 shadow-sm hover:shadow-md transition-all duration-300 hover:scale-110">
+              <MessageSquare className="w-5 h-5 text-green-300/70" />
+            </div>
+          </div>
+          
+          <div className="absolute top-[75%] left-[30%]">
+            <div className="w-10 h-10 bg-card/40 backdrop-blur-sm rounded-lg flex items-center justify-center border border-border/10 shadow-sm hover:shadow-md transition-all duration-300 hover:scale-110">
+              <Star className="w-5 h-5 text-orange-300/70" />
+            </div>
+          </div>
         </div>
 
-        {/* Helper Text */}
-        <div className="pt-4">
-          <p className="text-sm text-muted-foreground">
-            Share your forms with a simple link • No accounts needed for respondents
-          </p>
+        {/* Main Hero Content */}
+        <div className="text-center space-y-8 flex-shrink-0 relative z-10">
+          {/* Central Play Button */}
+          <div className="flex justify-center">
+            <div className="relative group">
+              {/* Animated rings */}
+              <div className="absolute inset-0 rounded-full bg-primary/20 animate-ping"></div>
+              <div className="absolute inset-2 rounded-full bg-primary/10 animate-ping animation-delay-1000"></div>
+              
+              {/* Main button */}
+              <Button
+                onClick={() => onAction('create')}
+                className="relative w-48 h-48 rounded-full bg-gradient-to-br from-primary via-primary to-primary/80 hover:from-primary/90 hover:via-primary/90 hover:to-primary/70 shadow-2xl hover:shadow-primary/25 transition-all duration-500 hover:scale-110 active:scale-95 group-hover:shadow-3xl border-4 border-white/20"
+              >
+                {/* Glow effect */}
+                <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                
+                {/* Play icon */}
+                <Play className="w-20 h-20 text-white ml-2 drop-shadow-lg group-hover:scale-110 transition-transform duration-300" fill="currentColor" />
+                
+                {/* Sparkle effect */}
+                <div className="absolute top-4 right-8 w-2 h-2 bg-white/60 rounded-full opacity-0 group-hover:opacity-100 animate-pulse"></div>
+                <div className="absolute bottom-6 left-6 w-1.5 h-1.5 bg-white/40 rounded-full opacity-0 group-hover:opacity-100 animate-pulse animation-delay-500"></div>
+                <div className="absolute top-8 left-4 w-1 h-1 bg-white/50 rounded-full opacity-0 group-hover:opacity-100 animate-pulse animation-delay-300"></div>
+              </Button>
+            </div>
+          </div>
+          
+          {/* Enhanced Text */}
+          <div className="space-y-4">
+            <h1 className="text-3xl md:text-4xl font-bold text-foreground">
+              Create your form in seconds
+            </h1>
+            <p className="text-lg text-muted-foreground max-w-md mx-auto">
+              AI-powered form builder that understands your needs
+            </p>
+            <div className="flex items-center justify-center gap-6 pt-4">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                No coding required
+              </div>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse animation-delay-300"></div>
+                Smart analytics
+              </div>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse animation-delay-500"></div>
+                Instant sharing
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Scroll Indicator */}
+        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
+          <div className="w-6 h-10 border-2 border-muted-foreground/30 rounded-full flex justify-center">
+            <div className="w-1 h-3 bg-muted-foreground/50 rounded-full mt-2 animate-pulse"></div>
+          </div>
         </div>
       </div>
-      
-      {/* Forms Grid */}
-      <FormsGrid onEditForm={onEditForm} onViewDashboard={onViewDashboard} />
 
-      {/* Subtle Feature Points */}
-      <div className="max-w-4xl mx-auto px-4 pb-16">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
-          <div className="space-y-2">
-            <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mx-auto">
-              <div className="w-6 h-6 bg-primary rounded-sm"></div>
-            </div>
-            <h3 className="font-semibold text-foreground">AI-Powered</h3>
-            <p className="text-sm text-muted-foreground">
-              Intelligent form generation and optimization
-            </p>
-          </div>
-          
-          <div className="space-y-2">
-            <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mx-auto">
-              <div className="w-6 h-6 bg-primary rounded-sm"></div>
-            </div>
-            <h3 className="font-semibold text-foreground">Seamless</h3>
-            <p className="text-sm text-muted-foreground">
-              Effortless form sharing and response collection
-            </p>
-          </div>
-          
-          <div className="space-y-2">
-            <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mx-auto">
-              <div className="w-6 h-6 bg-primary rounded-sm"></div>
-            </div>
-            <h3 className="font-semibold text-foreground">Insightful</h3>
-            <p className="text-sm text-muted-foreground">
-              Powerful analytics and response management
-            </p>
-          </div>
-        </div>
+      {/* Recent Forms Section */}
+      <div className="bg-gradient-to-b from-card/30 to-background/95 py-16">
+        <MinimalFormsPreview 
+          onEditForm={onEditForm}
+          onViewDashboard={onViewDashboard}
+          onDeleteForm={onDeleteForm}
+        />
       </div>
     </div>
   );

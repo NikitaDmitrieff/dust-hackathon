@@ -1,0 +1,11 @@
+USER INTENT ANALYSIS
+====================
+
+1. User's main intent/goal:
+   - The user wants to create a form to collect information about their friends' ages and hair colors.
+
+2. Key requests or needs mentioned:
+   - The form should include fields to gather information on age and hair color.
+
+3. Any specific actions they want taken:
+   - The user is considering different types of input fields, such as dropdown lists or free text fields, for collecting age and hair color information. They are seeking advice on whether to use dropdown lists with age ranges or allow free text entry for age.

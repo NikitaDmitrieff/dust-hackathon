@@ -12,6 +12,7 @@ import { ArrowLeft, Send, Edit, User, Sparkles } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { talk_to_assistant_answer } from '@/Victor/assistantService';
+import VoiceAssistant from './VoiceAssistant';
 
 interface Question {
   question_id: string;
@@ -39,13 +40,28 @@ const PublicFormView: React.FC<PublicFormViewProps> = ({ formId, onReturnToMenu 
   const [userName, setUserName] = useState('');
   const [isEditMode, setIsEditMode] = useState(false);
   const [hasSubmitted, setHasSubmitted] = useState(false);
-  const [isGeneratingAnswers, setIsGeneratingAnswers] = useState(false);
+  const [showVoiceAssistant, setShowVoiceAssistant] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
 
   useEffect(() => {
     fetchFormData();
   }, [formId]);
+
+  // Listen for voice assistant events
+  useEffect(() => {
+    const handleVoiceAssistantEvent = (event: CustomEvent) => {
+      if (event.detail.mode === 'form_completion' && formData) {
+        setShowVoiceAssistant(true);
+      }
+    };
+
+    window.addEventListener('OPEN_VOICE_ASSISTANT', handleVoiceAssistantEvent as EventListener);
+
+    return () => {
+      window.removeEventListener('OPEN_VOICE_ASSISTANT', handleVoiceAssistantEvent as EventListener);
+    };
+  }, [formData]);
 
   // Check for existing answers when userName changes
   useEffect(() => {
@@ -164,33 +180,23 @@ const PublicFormView: React.FC<PublicFormViewProps> = ({ formId, onReturnToMenu 
   const handleAssistantFill = async () => {
     if (!formData) return;
     
-    setIsGeneratingAnswers(true);
-    try {
-      const questionData = {
-        questions: formData.questions
-      };
-      
-      const assistantAnswers = await talk_to_assistant_answer(questionData);
-      
-      // Fill the form with assistant answers
-      setAnswers(prev => ({
-        ...prev,
-        ...assistantAnswers
-      }));
-      
-      toast({
-        title: "Success!",
-        description: "Form filled by assistant.",
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to generate answers. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsGeneratingAnswers(false);
-    }
+    // Show voice assistant directly instead of using the old service
+    setShowVoiceAssistant(true);
+  };
+
+  const handleVoiceAnswersGenerated = (generatedAnswers: Record<string, any>) => {
+    // Fill the form with voice assistant answers
+    setAnswers(prev => ({
+      ...prev,
+      ...generatedAnswers
+    }));
+    
+    toast({
+      title: "Success!",
+      description: "Form filled by voice assistant.",
+    });
+    
+    setShowVoiceAssistant(false);
   };
 
   const handleSubmit = async () => {
@@ -459,6 +465,21 @@ const PublicFormView: React.FC<PublicFormViewProps> = ({ formId, onReturnToMenu 
     );
   }
 
+  // Show Voice Assistant overlay
+  if (showVoiceAssistant) {
+    return (
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <VoiceAssistant
+          formId={formId}
+          onAnswersGenerated={handleVoiceAnswersGenerated}
+          onClose={() => setShowVoiceAssistant(false)}
+          mode="form_completion"
+          questions={formData?.questions || []}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-subtle py-8">
       <div className="container mx-auto px-4 max-w-2xl">
@@ -511,12 +532,11 @@ const PublicFormView: React.FC<PublicFormViewProps> = ({ formId, onReturnToMenu 
               <div className="pt-4 space-y-3">
                 <Button 
                   onClick={handleAssistantFill}
-                  disabled={isGeneratingAnswers}
                   variant="outline"
                   className="w-full flex items-center gap-2 border-primary/30 hover:border-primary/50 hover:bg-primary/5"
                 >
                   <Sparkles className="w-4 h-4" />
-                  {isGeneratingAnswers ? 'Generating...' : 'Talk to Assistant'}
+                  Talk to Assistant
                 </Button>
                 
                 <Button 

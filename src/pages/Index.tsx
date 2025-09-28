@@ -51,6 +51,12 @@ const Index = () => {
     navigate(`/dashboard/${formId}`);
   };
 
+  const handleDeleteForm = (formId: string) => {
+    // Form deletion is handled in MinimalFormsPreview component
+    // This callback can be used for any additional cleanup if needed
+    console.log('Form deleted:', formId);
+  };
+
   // If there's a public form ID, show the public form view regardless of auth
   if (publicFormId) {
     return <PublicFormView formId={publicFormId} />;
@@ -60,15 +66,21 @@ const Index = () => {
   // Users will be redirected to /auth if not logged in
 
   return (
-    <div className="min-h-screen bg-gradient-subtle">
-      <AppHeader currentView={currentView} onAction={handleAction} />
+    <div className="min-h-screen bg-gradient-subtle relative">
+      {/* Top navbar on all pages */}
+      <AppHeader 
+        onAction={handleAction}
+        onEditForm={handleEditForm}
+        onViewDashboard={handleViewDashboard}
+      />
       
-      <div className="">
+      <div className="pt-24">
         {currentView === 'home' && (
           <HeroSection 
-            onAction={handleAction} 
+            onAction={handleAction}
             onEditForm={handleEditForm}
             onViewDashboard={handleViewDashboard}
+            onDeleteForm={handleDeleteForm}
           />
         )}
         {currentView === 'create' && <FormBuilder onBack={handleBack} editingFormId={editingFormId} />}

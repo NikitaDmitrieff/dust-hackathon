@@ -1,0 +1,15 @@
+USER INTENT ANALYSIS
+====================
+
+1. **User's main intent/goal**: The user wants to create a structured form for their employees to assess job satisfaction and interest in relocating to another location.
+
+2. **Key requests or needs mentioned**: 
+   - The form should assess employee satisfaction with their current job.
+   - It should determine if employees are interested in relocating to another location.
+   - The user prefers a structured format over open feedback.
+
+3. **Specific actions they want taken**: 
+   - Use a numeric scale (e.g., 1 to 5) for satisfaction ratings.
+   - Include fields for current role, department, and preferred new location.
+   - Add a yes/no question regarding relocation interest.
+   - Include an optional comment box for additional thoughts.
