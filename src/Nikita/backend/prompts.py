@@ -53,8 +53,8 @@ Analysis:
 
 Generate a JSON response with the following structure:
 {{
-  "title": "Form title based on the conversation",
-  "description": "Brief description of the form's purpose",
+  "title": "Clear, descriptive form title that reflects the main purpose discussed in the conversation",
+  "description": "Detailed description explaining what this form is for and how responses will be used, based on the conversation context",
   "questions": [
     {{
       "id": "unique_id",
@@ -65,6 +65,11 @@ Generate a JSON response with the following structure:
     }}
   ]
 }}
+
+Important instructions for title and description:
+- Title: Create a concise but descriptive title (3-8 words) that clearly indicates what the form is about
+- Description: Write 1-2 sentences explaining the form's purpose, who should fill it out, and what will happen with the responses
+- Base both title and description on the specific context and intent expressed in the conversation
 
 Create relevant questions based on what the user discussed. Use appropriate field types and make required fields logical.
 Return only valid JSON, no additional text or explanation."""

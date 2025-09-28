@@ -166,11 +166,11 @@ const FormBuilder = ({ onBack, editingFormId }: FormBuilderProps) => {
 
   const handleFormGenerated = (formData: any) => {
     // Update the form with generated data
-    if (formData.form_title) {
-      setFormTitle(formData.form_title);
+    if (formData.title || formData.form_title) {
+      setFormTitle(formData.title || formData.form_title);
     }
-    if (formData.form_description) {
-      setFormDescription(formData.form_description);
+    if (formData.description || formData.form_description) {
+      setFormDescription(formData.description || formData.form_description);
     }
     if (formData.questions && Array.isArray(formData.questions)) {
       const formattedQuestions = formData.questions.map((q: any, index: number) => ({
