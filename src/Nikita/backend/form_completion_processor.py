@@ -148,7 +148,7 @@ async def process_form_completion_session(session_id: str, questions: List[Dict]
         logger = ConversationLogger()
         
         # Get the conversation transcript
-        transcript = await logger.get_session_transcript(session_id)
+        transcript = await logger.get_session_transcript(session_id, mode='form_completion')
         print(f"Transcript found: {bool(transcript)}")
         if transcript:
             print(f"Transcript length: {len(transcript)}")

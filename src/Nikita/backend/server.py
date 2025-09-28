@@ -90,7 +90,8 @@ async def websocket_endpoint(websocket: WebSocket):
     
     openai_ws = None
     is_connected = False
-    session_id = conversation_logger.start_session()
+    session_mode = 'form_creation'  # Default mode
+    session_id = conversation_logger.start_session(mode=session_mode)
     
     try:
         while True:
@@ -118,6 +119,12 @@ async def websocket_endpoint(websocket: WebSocket):
                         if data.get('type') == 'connect' and data.get('ephemeralToken'):
                             mode = data.get('mode', 'form_creation')
                             questions = data.get('questions', [])
+                            
+                            # Update session mode if different from default
+                            if mode != session_mode:
+                                session_mode = mode
+                                # Restart session with correct mode
+                                session_id = conversation_logger.start_session(mode=session_mode)
                             
                             openai_ws = await websocket_handler.establish_openai_connection(
                                 data['ephemeralToken'], session_id, websocket, mode, questions

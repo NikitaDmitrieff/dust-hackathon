@@ -14,9 +14,15 @@ import string
 # Storage configuration
 BACKEND_DIR = Path(__file__).parent
 DISCUSSIONS_DIR = BACKEND_DIR / 'discussions'
+FORM_COMPLETION_DISCUSSIONS_DIR = BACKEND_DIR / 'discussions_form_completion'
 ANALYSIS_DIR = BACKEND_DIR / 'analysis'
+FORM_COMPLETION_ANALYSIS_DIR = BACKEND_DIR / 'analysis_form_completion'
+
+# Create directories
 DISCUSSIONS_DIR.mkdir(exist_ok=True)
+FORM_COMPLETION_DISCUSSIONS_DIR.mkdir(exist_ok=True)
 ANALYSIS_DIR.mkdir(exist_ok=True)
+FORM_COMPLETION_ANALYSIS_DIR.mkdir(exist_ok=True)
 
 class ConversationItem:
     def __init__(self, speaker: str, content: str, timestamp: datetime, is_delta: bool = False):
@@ -26,8 +32,9 @@ class ConversationItem:
         self.is_delta = is_delta
 
 class DiscussionSession:
-    def __init__(self, session_id: str):
+    def __init__(self, session_id: str, mode: str = 'form_creation'):
         self.session_id = session_id
+        self.mode = mode  # 'form_creation' or 'form_completion'
         self.conversation: List[ConversationItem] = []
         self.start_time = datetime.now()
         self.is_saved = False  # Track if conversation has been saved
@@ -42,12 +49,12 @@ class ConversationLogger:
         random_part = ''.join(random.choices(string.ascii_lowercase + string.digits, k=9))
         return f"session_{timestamp}_{random_part}"
     
-    def start_session(self, session_id: str = None) -> str:
+    def start_session(self, session_id: str = None, mode: str = 'form_creation') -> str:
         """Start a new conversation session"""
         if not session_id:
             session_id = self.generate_session_id()
         
-        self.active_discussions[session_id] = DiscussionSession(session_id)
+        self.active_discussions[session_id] = DiscussionSession(session_id, mode)
         return session_id
     
     def extract_conversation_content(self, message_type: str, message: Dict) -> Optional[ConversationItem]:
@@ -151,7 +158,12 @@ class ConversationLogger:
         try:
             timestamp = datetime.now().isoformat().replace(':', '-').replace('.', '-')
             filename = f"conversation_{session_id}_{timestamp}.txt"
-            filepath = DISCUSSIONS_DIR / filename
+            
+            # Choose directory based on session mode
+            if discussion.mode == 'form_completion':
+                filepath = FORM_COMPLETION_DISCUSSIONS_DIR / filename
+            else:
+                filepath = DISCUSSIONS_DIR / filename
             
             content = f"Conversation Session: {session_id}\n"
             content += f"Started: {discussion.start_time.isoformat()}\n"
@@ -205,24 +217,112 @@ class ConversationLogger:
         except Exception as error:
             pass
     
-    async def get_session_transcript(self, session_id: str) -> Optional[str]:
+    async def get_session_transcript(self, session_id: str, mode: str = 'form_completion') -> Optional[str]:
         """Get the formatted transcript for a session."""
         try:
+            print(f"Looking for transcript for session: {session_id} (mode: {mode})")
+            print(f"BACKEND_DIR: {BACKEND_DIR}")
+            print(f"FORM_COMPLETION_DISCUSSIONS_DIR: {FORM_COMPLETION_DISCUSSIONS_DIR}")
+            print(f"DISCUSSIONS_DIR: {DISCUSSIONS_DIR}")
+            print(f"Current working directory: {Path.cwd()}")
+            
             # First check if session is still active
             if session_id in self.active_discussions:
+                print("Session found in active discussions")
                 discussion = self.active_discussions[session_id]
                 return self.format_conversation(discussion.conversation)
             
-            # Otherwise, look for saved conversation file
-            conversation_files = list(DISCUSSIONS_DIR.glob(f"conversation_{session_id}_*.txt"))
+            # Choose directory based on mode
+            search_dirs = []
+            if mode == 'form_completion':
+                search_dirs = [FORM_COMPLETION_DISCUSSIONS_DIR, DISCUSSIONS_DIR]  # Fallback to main dir
+                print(f"Form completion mode - will search in: {[str(d) for d in search_dirs]}")
+            else:
+                search_dirs = [DISCUSSIONS_DIR]
+                print(f"Form creation mode - will search in: {[str(d) for d in search_dirs]}")
+            
+            # Look for saved conversation file in appropriate directories
+            pattern = f"conversation_{session_id}_*.txt"
+            print(f"Looking for files with pattern: {pattern}")
+            
+            conversation_files = []
+            for i, search_dir in enumerate(search_dirs):
+                print(f"\n=== SEARCHING DIRECTORY {i+1}/{len(search_dirs)}: {search_dir.name} ===")
+                print(f"Searching in directory: {search_dir}")
+                print(f"Absolute path: {search_dir.absolute()}")
+                print(f"Directory exists: {search_dir.exists()}")
+                
+                if not search_dir.exists():
+                    print(f"Directory {search_dir} does not exist! Skipping...")
+                    continue
+                    
+                all_files = list(search_dir.glob("*.txt"))
+                print(f"All txt files in {search_dir.name}: {[f.name for f in all_files]}")
+                
+                # Test if any file matches our session ID manually
+                matching_files = [f for f in all_files if session_id in f.name]
+                print(f"Files containing session_id '{session_id}': {[f.name for f in matching_files]}")
+                
+                # Try both glob and manual filtering
+                files = list(search_dir.glob(pattern))
+                print(f"Glob found {len(files)} files matching pattern: {[f.name for f in files]}")
+                
+                # Alternative: manual filtering with os.listdir
+                import os
+                try:
+                    manual_files = []
+                    for filename in os.listdir(search_dir):
+                        if filename.endswith('.txt') and session_id in filename:
+                            manual_files.append(search_dir / filename)
+                    print(f"Manual search found {len(manual_files)} files: {[f.name for f in manual_files]}")
+                    
+                    # Use manual results if glob failed
+                    if not files and manual_files:
+                        files = manual_files
+                        print("Using manual search results since glob failed")
+                except Exception as e:
+                    print(f"Manual search failed: {e}")
+                
+                # FALLBACK: If no exact match found, use the most recent file as a last resort
+                if not files and all_files and i == 0:  # Only for form_completion directory
+                    print("No exact session match found. Trying fallback: most recent file")
+                    most_recent = max(all_files, key=lambda x: x.stat().st_mtime)
+                    print(f"Most recent file: {most_recent.name}")
+                    print(f"File age: {(datetime.now().timestamp() - most_recent.stat().st_mtime)} seconds old")
+                    
+                    # Only use if it's very recent (within last 5 minutes)
+                    if (datetime.now().timestamp() - most_recent.stat().st_mtime) < 300:
+                        files = [most_recent]
+                        print("Using most recent file as fallback (within 5 minutes)")
+                    else:
+                        print("Most recent file too old, skipping fallback")
+                
+                conversation_files.extend(files)
+                print(f"Final files added from {search_dir.name}: {[f.name for f in files]}")
+                
+                # If we found files, we can break early (optional)
+                if files:
+                    print(f"Found files in {search_dir.name}, stopping search")
+                    break
+            
             if not conversation_files:
+                import os
+                print(f"{os.getcwd()=}")
+                print(f"{Path.cwd()=}")
+                print(f"{search_dirs=}")
+                print(f"{conversation_files=}")
+                print(f"{pattern=}")
+                print("No conversation files found in any directory")
                 return None
             
             # Get the most recent file for this session
             latest_file = max(conversation_files, key=lambda x: x.stat().st_mtime)
+            print(f"Using file: {latest_file.name}")
             
             async with aiofiles.open(latest_file, 'r', encoding='utf8') as f:
                 content = await f.read()
+            
+            print(f"File content length: {len(content)}")
             
             # Extract just the conversation part (after the header)
             lines = content.split('\n')
@@ -232,17 +332,22 @@ class ConversationLogger:
                     start_index = i + 1
                     break
             
-            return '\n'.join(lines[start_index:]).strip()
+            transcript = '\n'.join(lines[start_index:]).strip()
+            print(f"Extracted transcript length: {len(transcript)}")
+            
+            return transcript
             
         except Exception as error:
             print(f"Error getting session transcript: {error}")
+            import traceback
+            traceback.print_exc()
             return None
     
     async def save_form_completion_analysis(self, session_id: str, analysis: str):
         """Save form completion analysis to a dedicated file."""
         try:
             analysis_filename = f"{session_id}_form_completion_analysis.txt"
-            analysis_path = ANALYSIS_DIR / analysis_filename
+            analysis_path = FORM_COMPLETION_ANALYSIS_DIR / analysis_filename
             
             timestamp = datetime.now().isoformat()
             content = f"FORM COMPLETION ANALYSIS\n{'='*25}\n"
