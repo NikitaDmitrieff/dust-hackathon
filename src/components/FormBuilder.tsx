@@ -12,7 +12,7 @@ import { Plus, Trash2, MoveUp, MoveDown, Copy, Link, Check, Sparkles, Zap } from
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { talk_to_assistant } from '@/Nikita/assistantService';
+import VoiceAssistant from './VoiceAssistant';
 
 interface Question {
   id: string;
@@ -39,6 +39,7 @@ const FormBuilder = ({ onBack, editingFormId }: FormBuilderProps) => {
   const [isLinkDialogOpen, setIsLinkDialogOpen] = useState(false);
   const [publishedFormId, setPublishedFormId] = useState<string | null>(null);
   const [isCopied, setIsCopied] = useState(false);
+  const [showVoiceAssistant, setShowVoiceAssistant] = useState(false);
 
   // Load form data when editing
   useEffect(() => {
@@ -160,15 +161,32 @@ const FormBuilder = ({ onBack, editingFormId }: FormBuilderProps) => {
   };
 
   const handleAIAssistant = () => {
-    const formId = editingFormId || publishedFormId || 'new-form';
+    setShowVoiceAssistant(true);
+  };
+
+  const handleFormGenerated = (formData: any) => {
+    // Update the form with generated data
+    if (formData.form_title) {
+      setFormTitle(formData.form_title);
+    }
+    if (formData.form_description) {
+      setFormDescription(formData.form_description);
+    }
+    if (formData.questions && Array.isArray(formData.questions)) {
+      const formattedQuestions = formData.questions.map((q: any, index: number) => ({
+        id: `q_${Date.now()}_${index}`,
+        question: q.question || q.text || '',
+        type: q.type || 'text',
+        options: q.options || [],
+        required: q.required !== false
+      }));
+      setQuestions(formattedQuestions);
+    }
     
-    const formUpdater = {
-      setFormTitle,
-      setFormDescription,
-      setQuestions
-    };
-    
-    talk_to_assistant(formId, formUpdater);
+    toast({
+      title: "Success!",
+      description: "Form generated successfully by the assistant.",
+    });
   };
 
   const saveForm = async () => {
@@ -341,6 +359,19 @@ const FormBuilder = ({ onBack, editingFormId }: FormBuilderProps) => {
     { value: 'checkbox', label: 'Checkboxes' },
     { value: 'select', label: 'Dropdown' }
   ];
+
+  // Show Voice Assistant overlay
+  if (showVoiceAssistant) {
+    return (
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <VoiceAssistant
+          formId={editingFormId || publishedFormId || 'new-form'}
+          onFormGenerated={handleFormGenerated}
+          onClose={() => setShowVoiceAssistant(false)}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-[calc(100vh-4rem)] overflow-hidden bg-gradient-to-br from-purple-50 via-purple-100/50 to-purple-200/30 relative">
