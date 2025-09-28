@@ -23,13 +23,13 @@ const FloatingNav = ({ onAction, onEditForm, onViewDashboard }: FloatingNavProps
   };
 
   return (
-    <div className="bg-background/95 backdrop-blur-sm border border-border/20 rounded-full shadow-lg p-2 flex items-center gap-2">
+    <div className="bg-background/95 backdrop-blur-sm border border-border/20 rounded-full shadow-lg p-1 flex items-center gap-1">
       {/* Create Form Button */}
       <Button
         variant="ghost"
         size="sm"
         onClick={() => onAction('create')}
-        className="hover:bg-primary/10 rounded-full px-3"
+        className="hover:bg-primary/10 rounded-full px-2 py-1"
       >
         <Plus className="w-4 h-4 mr-2" />
         Create Form
@@ -40,7 +40,7 @@ const FloatingNav = ({ onAction, onEditForm, onViewDashboard }: FloatingNavProps
         variant="ghost"
         size="sm"
         onClick={() => onAction('admin')}
-        className="hover:bg-primary/10 rounded-full px-3"
+        className="hover:bg-primary/10 rounded-full px-2 py-1"
       >
         <FileText className="w-4 h-4 mr-2" />
         Previous Forms
@@ -51,7 +51,7 @@ const FloatingNav = ({ onAction, onEditForm, onViewDashboard }: FloatingNavProps
         variant="ghost"
         size="sm"
         onClick={() => onAction('admin')}
-        className="hover:bg-primary/10 rounded-full px-3"
+        className="hover:bg-primary/10 rounded-full px-2 py-1"
       >
         <Settings className="w-4 h-4 mr-2" />
         Admin Panel
@@ -66,7 +66,7 @@ const FloatingNav = ({ onAction, onEditForm, onViewDashboard }: FloatingNavProps
               <Button
                 variant="ghost"
                 size="sm"
-                className="hover:bg-primary/10 rounded-full px-3"
+                className="hover:bg-primary/10 rounded-full px-2 py-1"
               >
                 <User className="w-4 h-4 mr-2" />
                 {user.email.split('@')[0]}

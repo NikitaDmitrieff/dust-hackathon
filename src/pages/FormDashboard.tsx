@@ -1,7 +1,6 @@
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { BarChart3 } from 'lucide-react';
-import AppHeader from '@/components/AppHeader';
 import AiChartsBento from './AiChartsBento';
 
 const FormDashboard = () => {
@@ -36,34 +35,41 @@ const FormDashboard = () => {
   };
 
   return (
-    <>
-      <AppHeader 
-        onAction={handleAction}
-        onEditForm={handleEditForm}
-        onViewDashboard={handleViewDashboard}
-      />
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-purple-100/50 to-purple-200/30 flex flex-col relative">
+      {/* Background noise texture */}
+      <div className="absolute inset-0 opacity-20 bg-noise"></div>
       
-      <div className="min-h-screen pt-32 bg-gradient-to-br from-purple-50 via-purple-100/50 to-purple-200/30 relative">
-        {/* Background noise texture */}
-        <div className="absolute inset-0 opacity-20 bg-noise"></div>
-        
-        <div className="relative z-10">
-          <div className="container mx-auto px-6 py-8">
-            {/* Integrated Title with Content */}
-            <div className="mb-8">
-              <div className="flex items-center gap-3 mb-2">
-                <BarChart3 className="w-7 h-7 text-primary" />
-                <h1 className="text-2xl font-bold text-foreground">Analytics Dashboard</h1>
-              </div>
-              <p className="text-muted-foreground ml-10">Analyze your form data with AI-powered insights</p>
+      {/* Logo Header */}
+      <div className="p-6 relative z-10 bg-gradient-to-br from-purple-50 via-purple-100/50 to-purple-200/30">
+        <button 
+          onClick={() => handleAction('home')}
+          className="flex items-center hover:opacity-80 transition-opacity"
+        >
+          <img 
+            src="/logo_txt.png" 
+            alt="Scribe Form" 
+            className="w-auto h-12"
+          />
+        </button>
+      </div>
+      
+      {/* Main Content */}
+      <div className="flex-1 relative z-10">
+        <div className="container mx-auto px-6 py-8">
+          {/* Integrated Title with Content */}
+          <div className="mb-8">
+            <div className="flex items-center gap-3 mb-2">
+              <BarChart3 className="w-7 h-7 text-primary" />
+              <h1 className="text-2xl font-bold text-foreground">Analytics Dashboard</h1>
             </div>
-
-            {/* AI Charts Interface */}
-            <AiChartsBento formId={formId} />
+            <p className="text-muted-foreground ml-10">Analyze your form data with AI-powered insights</p>
           </div>
+
+          {/* AI Charts Interface */}
+          <AiChartsBento formId={formId} />
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

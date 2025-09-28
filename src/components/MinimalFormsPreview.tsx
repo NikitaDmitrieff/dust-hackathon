@@ -113,7 +113,7 @@ const MinimalFormsPreview = ({ onEditForm, onViewDashboard, onDeleteForm }: Mini
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {[1, 2, 3, 4, 5, 6].map((i) => (
             <Card key={i} className="animate-pulse bg-card/50 border-border/30">
-              <CardContent className="p-4">
+              <CardContent className="p-3">
                 <div className="h-4 bg-muted rounded w-3/4 mb-2"></div>
                 <div className="h-3 bg-muted rounded w-1/2 mb-3"></div>
                 <div className="h-8 bg-muted rounded"></div>
@@ -146,7 +146,7 @@ const MinimalFormsPreview = ({ onEditForm, onViewDashboard, onDeleteForm }: Mini
             key={form.form_id} 
             className="group hover:shadow-lg transition-all duration-300 bg-card/50 backdrop-blur-sm border-border/30 hover:border-primary/20"
           >
-            <CardContent className="p-4">
+            <CardContent className="p-3">
               <div className="flex items-start gap-3 mb-3">
                 <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
                   <FileText className="w-4 h-4 text-primary" />

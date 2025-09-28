@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import AppHeader from "@/components/AppHeader";
+import FloatingNav from "@/components/FloatingNav";
 import HeroSection from "@/components/HeroSection";
 import FormBuilder from "@/components/FormBuilder";
 import AdminPanel from "@/components/AdminPanel";
@@ -66,15 +66,32 @@ const Index = () => {
   // Users will be redirected to /auth if not logged in
 
   return (
-    <div className="min-h-screen bg-gradient-subtle relative">
-      {/* Top navbar on all pages */}
-      <AppHeader 
-        onAction={handleAction}
-        onEditForm={handleEditForm}
-        onViewDashboard={handleViewDashboard}
-      />
+    <div className="min-h-screen bg-gradient-subtle flex flex-col">
+      {/* Logo Header */}
+      <div className={`h-[100px] flex items-center pl-6 ${currentView === 'create' ? 'bg-[#f7f2fc]' : 'bg-[#fdfdfe]'}`}>
+        <button 
+          onClick={() => handleAction('home')}
+          className="flex items-center hover:opacity-80 transition-opacity"
+        >
+          <img 
+            src="/logo_txt.png" 
+            alt="Scribe Form" 
+            className="w-auto h-12"
+          />
+        </button>
+      </div>
+
+      {/* Floating Navigation */}
+      <div className="fixed top-12 left-1/2 transform -translate-x-1/2 z-50">
+        <FloatingNav 
+          onAction={handleAction}
+          onEditForm={handleEditForm}
+          onViewDashboard={handleViewDashboard}
+        />
+      </div>
       
-      <div className="pt-24">
+      {/* Main Content */}
+      <div className="flex-1">
         {currentView === 'home' && (
           <HeroSection 
             onAction={handleAction}
