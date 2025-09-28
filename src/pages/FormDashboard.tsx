@@ -1,7 +1,7 @@
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
+import { BarChart3 } from 'lucide-react';
+import AppHeader from '@/components/AppHeader';
 import AiChartsBento from './AiChartsBento';
 
 const FormDashboard = () => {
@@ -10,31 +10,60 @@ const FormDashboard = () => {
 
   console.log('FormDashboard component mounted with formId:', formId);
 
+  const handleAction = (action: 'create' | 'admin' | 'home' | 'enter-code') => {
+    switch (action) {
+      case 'home':
+        navigate('/');
+        break;
+      case 'create':
+        navigate('/');
+        break;
+      case 'admin':
+        navigate('/');
+        break;
+      case 'enter-code':
+        navigate('/');
+        break;
+    }
+  };
+
+  const handleEditForm = (formId: string) => {
+    navigate('/');
+  };
+
+  const handleViewDashboard = (formId: string) => {
+    navigate(`/dashboard/${formId}`);
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-subtle">
-      {/* Header */}
-      <div className="container mx-auto px-4 py-6">
-        <div className="flex items-center gap-4 mb-6">
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => navigate('/')}
-            className="flex items-center gap-2"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back to Forms
-          </Button>
-          
-          <div className="flex-1">
-            <h1 className="text-2xl font-bold text-foreground">Analytics Dashboard</h1>
-            <p className="text-muted-foreground">Analyze your form data with AI</p>
+    <>
+      <AppHeader 
+        onAction={handleAction}
+        onEditForm={handleEditForm}
+        onViewDashboard={handleViewDashboard}
+      />
+      
+      <div className="min-h-screen pt-32 bg-gradient-to-br from-purple-50 via-purple-100/50 to-purple-200/30 relative">
+        {/* Background noise texture */}
+        <div className="absolute inset-0 opacity-20 bg-noise"></div>
+        
+        <div className="relative z-10">
+          <div className="container mx-auto px-6 py-8">
+            {/* Integrated Title with Content */}
+            <div className="mb-8">
+              <div className="flex items-center gap-3 mb-2">
+                <BarChart3 className="w-7 h-7 text-primary" />
+                <h1 className="text-2xl font-bold text-foreground">Analytics Dashboard</h1>
+              </div>
+              <p className="text-muted-foreground ml-10">Analyze your form data with AI-powered insights</p>
+            </div>
+
+            {/* AI Charts Interface */}
+            <AiChartsBento formId={formId} />
           </div>
         </div>
       </div>
-
-      {/* AI Charts Interface */}
-      <AiChartsBento formId={formId} />
-    </div>
+    </>
   );
 };
 

@@ -13,7 +13,7 @@ const AppHeader = ({ onAction, onEditForm, onViewDashboard }: AppHeaderProps) =>
         {/* Logo */}
         <button 
           onClick={() => onAction('home')}
-          className="flex items-center hover:opacity-80 transition-opacity"
+          className="flex items-center hover:opacity-80 transition-opacity ml-4"
         >
           <img 
             src="/logo_txt.png" 
