@@ -4,12 +4,7 @@ interface FormUpdater {
   setQuestions: (questions: any[]) => void;
 }
 
-export const talk_to_assistant = (current_form_id: string, formUpdater?: FormUpdater) => { 
-
-  //ta_fonction() => un truc comme ce qui suit
-  // wait pour le remplissage se fasse
-
-  //ensuite continuer et formater la donné comme ci dessous
+export const talk_to_assistant = (current_form_id: string, formUpdater?: FormUpdater) => {
   console.log('Talk to assistant called with form ID:', current_form_id);
   
   // Dummy implementation for testing
@@ -46,5 +41,3 @@ export const talk_to_assistant = (current_form_id: string, formUpdater?: FormUpd
     }, 1000);
   }
 };
-
-//ta_fonction()

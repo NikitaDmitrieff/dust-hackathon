@@ -287,7 +287,17 @@ const PublicFormView: React.FC<PublicFormViewProps> = ({ formId, onReturnToMenu 
   };
 
   const renderQuestion = (question: Question) => {
-    const { question_id, question: questionText, type_answer } = question;
+    const { question_id, question: fullQuestionText, type_answer } = question;
+    
+    // Parse question text and options for radio/checkbox types
+    let questionText = fullQuestionText;
+    let options: string[] = [];
+    
+    if (fullQuestionText.includes('|OPTIONS:')) {
+      const [text, optionsString] = fullQuestionText.split('|OPTIONS:');
+      questionText = text;
+      options = optionsString.split('||').filter(opt => opt.trim() !== '');
+    }
 
     switch (type_answer.toLowerCase()) {
       case 'text':
@@ -334,6 +344,7 @@ const PublicFormView: React.FC<PublicFormViewProps> = ({ formId, onReturnToMenu 
 
       case 'radio':
       case 'choice':
+        const radioOptions = options.length > 0 ? options : ['Yes', 'No'];
         return (
           <div key={question_id} className="space-y-3">
             <Label>{questionText}</Label>
@@ -341,29 +352,63 @@ const PublicFormView: React.FC<PublicFormViewProps> = ({ formId, onReturnToMenu 
               value={answers[question_id] || ''}
               onValueChange={(value) => handleAnswerChange(question_id, value)}
             >
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="yes" id={`${question_id}_yes`} />
-                <Label htmlFor={`${question_id}_yes`}>Yes</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="no" id={`${question_id}_no`} />
-                <Label htmlFor={`${question_id}_no`}>No</Label>
-              </div>
+              {radioOptions.map((option: string, index: number) => (
+                <div key={index} className="flex items-center space-x-2">
+                  <RadioGroupItem value={option} id={`${question_id}_${index}`} />
+                  <Label htmlFor={`${question_id}_${index}`}>{option}</Label>
+                </div>
+              ))}
             </RadioGroup>
           </div>
         );
 
       case 'checkbox':
+        const checkboxOptions = options.length > 0 ? options : ['Option 1', 'Option 2'];
+        return (
+          <div key={question_id} className="space-y-3">
+            <Label>{questionText}</Label>
+            <div className="space-y-2">
+              {checkboxOptions.map((option: string, index: number) => (
+                <div key={index} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={`${question_id}_${index}`}
+                    checked={(answers[question_id] || []).includes(option)}
+                    onCheckedChange={(checked) => {
+                      const currentAnswers = answers[question_id] || [];
+                      if (checked) {
+                        handleAnswerChange(question_id, [...currentAnswers, option]);
+                      } else {
+                        handleAnswerChange(question_id, currentAnswers.filter((a: string) => a !== option));
+                      }
+                    }}
+                  />
+                  <Label htmlFor={`${question_id}_${index}`}>{option}</Label>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+
+      case 'select':
+        const selectOptions = options.length > 0 ? options : ['Option 1', 'Option 2'];
         return (
           <div key={question_id} className="space-y-2">
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id={question_id}
-                checked={answers[question_id] || false}
-                onCheckedChange={(checked) => handleAnswerChange(question_id, checked)}
-              />
-              <Label htmlFor={question_id}>{questionText}</Label>
-            </div>
+            <Label htmlFor={question_id}>{questionText}</Label>
+            <Select
+              value={answers[question_id] || ''}
+              onValueChange={(value) => handleAnswerChange(question_id, value)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select an option..." />
+              </SelectTrigger>
+              <SelectContent>
+                {selectOptions.map((option: string, index: number) => (
+                  <SelectItem key={index} value={option}>
+                    {option}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         );
 

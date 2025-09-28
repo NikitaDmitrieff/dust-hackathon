@@ -59,16 +59,16 @@ export const AiChartCard: React.FC<AiChartCardProps> = ({ result, onDuplicate })
   const copySQL = () => {
     navigator.clipboard.writeText(result.spec.sql);
     toast({
-      title: "SQL copié !",
-      description: "La requête SQL a été copiée dans le presse-papiers",
+      title: "SQL copied!",
+      description: "SQL query has been copied to clipboard",
     });
   };
 
   const handleExportPNG = async () => {
     if (!vegaView) {
       toast({
-        title: "Erreur",
-        description: "Le graphique n'est pas encore chargé",
+        title: "Error",
+        description: "Chart is not loaded yet",
         variant: "destructive",
       });
       return;
@@ -77,13 +77,13 @@ export const AiChartCard: React.FC<AiChartCardProps> = ({ result, onDuplicate })
     try {
       await exportPNG(vegaView, result.spec.title);
       toast({
-        title: "Image exportée !",
-        description: "Le graphique a été téléchargé en PNG",
+        title: "Image exported!",
+        description: "Chart has been downloaded as PNG",
       });
     } catch (error) {
       toast({
-        title: "Erreur d'export",
-        description: "Impossible d'exporter l'image",
+        title: "Export error",
+        description: "Unable to export image",
         variant: "destructive",
       });
     }
@@ -92,13 +92,13 @@ export const AiChartCard: React.FC<AiChartCardProps> = ({ result, onDuplicate })
   const handleExportCSV = () => {
     exportCSV(result.rows, result.spec.title);
     toast({
-      title: "CSV exporté !",
-      description: "Les données ont été téléchargées en CSV",
+      title: "CSV exported!",
+      description: "Data has been downloaded as CSV",
     });
   };
 
   const renderTable = () => {
-    if (result.rows.length === 0) return <p className="text-muted-foreground">Aucune donnée</p>;
+    if (result.rows.length === 0) return <p className="text-muted-foreground">No data</p>;
 
     const headers = Object.keys(result.rows[0]);
     
@@ -143,7 +143,7 @@ export const AiChartCard: React.FC<AiChartCardProps> = ({ result, onDuplicate })
             </p>
           </div>
           <Badge variant="secondary" className="text-xs">
-            Propulsé par LLM
+            Powered by LLM
           </Badge>
         </div>
       </CardHeader>
@@ -203,7 +203,7 @@ export const AiChartCard: React.FC<AiChartCardProps> = ({ result, onDuplicate })
               className="flex items-center gap-2"
             >
               <ArrowUp className="w-4 h-4" />
-              Dupliquer en haut
+              Duplicate at top
             </Button>
           )}
         </div>

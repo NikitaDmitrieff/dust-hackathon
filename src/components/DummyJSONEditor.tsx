@@ -40,15 +40,15 @@ export const DummyJSONEditor: React.FC<DummyJSONEditorProps> = ({
       
       // Basic validation
       if (!parsed.results || !Array.isArray(parsed.results)) {
-        throw new Error('Le JSON doit contenir un tableau "results"');
+        throw new Error('JSON must contain a "results" array');
       }
 
       for (const result of parsed.results) {
         if (!result.spec || !result.rows) {
-          throw new Error('Chaque résultat doit avoir "spec" et "rows"');
+          throw new Error('Each result must have "spec" and "rows"');
         }
         if (!result.spec.title || !result.spec.chartType) {
-          throw new Error('spec.title et spec.chartType sont requis');
+          throw new Error('spec.title and spec.chartType are required');
         }
       }
 
@@ -56,7 +56,7 @@ export const DummyJSONEditor: React.FC<DummyJSONEditorProps> = ({
       onClose();
       setError('');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'JSON invalide');
+      setError(err instanceof Error ? err.message : 'Invalid JSON');
     }
   };
 
@@ -71,10 +71,10 @@ export const DummyJSONEditor: React.FC<DummyJSONEditorProps> = ({
         <SheetHeader>
           <SheetTitle className="flex items-center gap-2">
             <FileCode className="w-5 h-5" />
-            Données factices (aperçu)
+            Mock Data (preview)
           </SheetTitle>
           <SheetDescription>
-            Choisissez un preset ou collez votre propre JSON pour prévisualiser vos données
+            Choose a preset or paste your own JSON to preview your data
           </SheetDescription>
         </SheetHeader>
 
@@ -117,7 +117,7 @@ export const DummyJSONEditor: React.FC<DummyJSONEditorProps> = ({
 
             <TabsContent value="json" className="space-y-4 mt-4">
               <div className="space-y-2">
-                <Label htmlFor="json-editor">JSON des résultats</Label>
+                <Label htmlFor="json-editor">Results JSON</Label>
                 <Textarea
                   id="json-editor"
                   placeholder='{"results": [{"spec": {...}, "rows": [...]}]}'
@@ -141,14 +141,14 @@ export const DummyJSONEditor: React.FC<DummyJSONEditorProps> = ({
 
           <div className="flex gap-3 mt-6 pt-4 border-t">
             <Button onClick={handleClose} variant="outline" className="flex-1">
-              Annuler
+              Cancel
             </Button>
             <Button 
               onClick={validateAndApply} 
               disabled={!jsonText.trim()}
               className="flex-1"
             >
-              Appliquer
+              Apply
             </Button>
           </div>
         </div>

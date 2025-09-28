@@ -200,12 +200,18 @@ const AdminPanel = ({ onBack }: AdminPanelProps) => {
           </TabsList>
 
           <TabsContent value="questions" className="space-y-4">
-            {questions.map(question => (
-              <Card key={question.question_id}>
-                <CardHeader>
-                  <CardTitle className="text-base">{question.question}</CardTitle>
-                  <CardDescription>Type: {question.type_answer}</CardDescription>
-                </CardHeader>
+            {questions.map(question => {
+              // Parse question text to remove encoded options
+              const displayQuestion = question.question.includes('|OPTIONS:') 
+                ? question.question.split('|OPTIONS:')[0] 
+                : question.question;
+              
+              return (
+                <Card key={question.question_id}>
+                  <CardHeader>
+                    <CardTitle className="text-base">{displayQuestion}</CardTitle>
+                    <CardDescription>Type: {question.type_answer}</CardDescription>
+                  </CardHeader>
                 <CardContent>
                   <div className="space-y-2">
                     {answersByQuestion[question.question_id]?.map((answer, index) => (
@@ -213,15 +219,18 @@ const AdminPanel = ({ onBack }: AdminPanelProps) => {
                         <div className="font-medium text-sm text-foreground mb-1">
                           {answer.userName}
                         </div>
-                        <div className="text-sm">{answer.response}</div>
+                        <div className="text-sm">
+                          {Array.isArray(answer.response) ? answer.response.join(', ') : answer.response}
+                        </div>
                       </div>
                     )) || (
                       <p className="text-muted-foreground text-sm">No answers yet</p>
                     )}
                   </div>
                 </CardContent>
-              </Card>
-            ))}
+                </Card>
+              );
+            })}
           </TabsContent>
 
           <TabsContent value="users" className="space-y-4">
@@ -240,7 +249,9 @@ const AdminPanel = ({ onBack }: AdminPanelProps) => {
                         <div className="font-medium text-sm text-foreground mb-1">
                           {answer.question}
                         </div>
-                        <div className="text-sm text-muted-foreground">{answer.response}</div>
+                        <div className="text-sm text-muted-foreground">
+                          {Array.isArray(answer.response) ? answer.response.join(', ') : answer.response}
+                        </div>
                       </div>
                     ))}
                   </div>

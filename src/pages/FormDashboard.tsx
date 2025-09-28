@@ -22,12 +22,12 @@ const FormDashboard = () => {
             className="flex items-center gap-2"
           >
             <ArrowLeft className="w-4 h-4" />
-            Retour aux formulaires
+            Back to Forms
           </Button>
           
           <div className="flex-1">
-            <h1 className="text-2xl font-bold text-foreground">Dashboard Analytique</h1>
-            <p className="text-muted-foreground">Analysez vos données de formulaire avec l'IA</p>
+            <h1 className="text-2xl font-bold text-foreground">Analytics Dashboard</h1>
+            <p className="text-muted-foreground">Analyze your form data with AI</p>
           </div>
         </div>
       </div>
