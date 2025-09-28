@@ -124,6 +124,16 @@ const AiChartsBento: React.FC<AiChartsBentoProps> = ({ formId }) => {
       return;
     }
 
+    const enforceTwoColumnLayout = () => {
+      const gridSections = container.querySelectorAll<HTMLDivElement>('.grid.grid-cols-12');
+      gridSections.forEach((grid) => {
+        grid.classList.remove('grid-cols-12', 'gap-4');
+        grid.classList.add('grid-cols-1', 'md:grid-cols-2', 'gap-6');
+      });
+    };
+
+    enforceTwoColumnLayout();
+
     const scripts = Array.from(container.querySelectorAll('script'));
     scripts.forEach((script) => {
       const replacement = document.createElement('script');
@@ -134,6 +144,14 @@ const AiChartsBento: React.FC<AiChartsBentoProps> = ({ formId }) => {
       replacement.appendChild(document.createTextNode(script.textContent ?? ''));
       script.parentNode?.replaceChild(replacement, script);
     });
+
+    const observer = new MutationObserver(() => {
+      enforceTwoColumnLayout();
+    });
+
+    observer.observe(container, { childList: true, subtree: true });
+
+    return () => observer.disconnect();
   }, [analysisHtml]);
 
   // Save history to localStorage
@@ -442,179 +460,181 @@ const AiChartsBento: React.FC<AiChartsBentoProps> = ({ formId }) => {
 
   return (
     <TooltipProvider>
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900">
-        <div className="container mx-auto p-6 space-y-8">
-          {/* Hero Section */}
-          <div className="space-y-6">
-            <div className="text-center">
-              <h1 className="text-4xl font-bold tracking-tight text-foreground mb-2">
-                AI Charts
-              </h1>
-              <p className="text-xl text-muted-foreground">
-                Ask a question, we generate the most relevant chart.
-              </p>
-            </div>
-
-            {/* Christopher Analysis or Empty State Section */}
-            {results.length === 0 && !isLoading && (
-              <div className="text-center py-12">
-                {isAnalysisLoading ? (
-                  <div>
-                    <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <Loader2 className="w-8 h-8 text-primary animate-spin" />
-                    </div>
-                    <h3 className="text-lg font-semibold mb-2">Analysis in progress...</h3>
-                    <p className="text-muted-foreground max-w-md mx-auto mb-4">
-                      Christopher is analyzing your form data to generate 
-                      personalized insights.
-                    </p>
-                  </div>
-                ) : analysisHtml ? (
-                  <div 
-                    ref={analysisContainerRef}
-                    className="text-left max-w-4xl mx-auto"
-                    dangerouslySetInnerHTML={{ __html: analysisHtml }}
-                  />
-                ) : (
-                  <div>
-                    <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <BarChart3 className="w-8 h-8 text-primary" />
-                    </div>
-                    <h3 className="text-lg font-semibold mb-2">Analysis in progress...</h3>
-                    <p className="text-muted-foreground max-w-md mx-auto mb-4">
-                      AI automatically analyzes your form data to generate 
-                      the most relevant visualizations.
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      <strong>Tip:</strong> Enable Demo mode to see an example with mock data.
-                    </p>
-                  </div>
-                )}
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900 py-12 md:py-16">
+        <div className="container mx-auto px-4 md:px-6">
+          <div className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-card to-card/85 border border-border/50 shadow-2xl">
+            <div className="relative p-6 md:p-10 space-y-10">
+              {/* Hero Section */}
+              <div className="space-y-6">
+              <div className="text-center">
+                <h1 className="text-4xl font-bold tracking-tight text-foreground mb-2">
+                  AI Charts
+                </h1>
+                <p className="text-xl text-muted-foreground">
+                  Ask a question, we generate the most relevant chart.
+                </p>
               </div>
-            )}
-
-            {/* Input Bento Grid */}
-            <BentoGrid>
-              {/* Tile A: Main Query Input (2x1) */}
-              <BentoTile cols={2} rows={1} className="space-y-6">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                    <BarChart3 className="w-5 h-5 text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-lg">AI Generation</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Describe your analysis needs
-                    </p>
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="question">Your question</Label>
-                    <Input
-                      id="question"
-                      placeholder="Ex: Sales per day (last 30 days)?"
-                      value={question}
-                      onChange={(e) => setQuestion(e.target.value)}
-                      onKeyPress={handleKeyPress}
-                      disabled={isLoading}
-                      className="text-base"
+  
+              {/* Christopher Analysis or Empty State Section */}
+              {results.length === 0 && !isLoading && (
+                <div className="text-center py-12">
+                  {isAnalysisLoading ? (
+                    <div>
+                      <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <Loader2 className="w-8 h-8 text-primary animate-spin" />
+                      </div>
+                      <h3 className="text-lg font-semibold mb-2">Analysis in progress...</h3>
+                      <p className="text-muted-foreground max-w-md mx-auto mb-4">
+                        Christopher is analyzing your form data to generate
+                        personalized insights.
+                      </p>
+                    </div>
+                  ) : analysisHtml ? (
+                    <div
+                      ref={analysisContainerRef}
+                      className="analysis-html text-left mx-auto w-full max-w-6xl space-y-6"
+                      dangerouslySetInnerHTML={{ __html: analysisHtml }}
                     />
-                  </div>
-
-                  <Button 
-                    onClick={handleGenerateWithAI}
-                    disabled={isLoading || !question.trim()}
-                    className="flex items-center gap-2"
-                  >
-                    {isLoading ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <Sparkles className="w-4 h-4" />
-                    )}
-                    {isLoading ? 'Generating...' : 'Generate with AI'}
-                  </Button>
+                  ) : (
+                    <div>
+                      <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <BarChart3 className="w-8 h-8 text-primary" />
+                      </div>
+                      <h3 className="text-lg font-semibold mb-2">Analysis in progress...</h3>
+                      <p className="text-muted-foreground max-w-md mx-auto mb-4">
+                        AI automatically analyzes your form data to generate
+                        the most relevant visualizations.
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        <strong>Tip:</strong> Enable Demo mode to see an example with mock data.
+                      </p>
+                    </div>
+                  )}
                 </div>
-              </BentoTile>
-
-              {/* Tile B: View Answers Raw (1x1) */}
-              <BentoTile cols={1} rows={1}>
-                <div className="h-full flex flex-col">
-                  <div className="flex items-center gap-2 mb-4">
-                    <Database className="w-5 h-5 text-primary" />
-                    <h3 className="font-semibold">View Answers Raw</h3>
+              )}
+  
+              {/* Input Bento Grid */}
+              <BentoGrid>
+                {/* Tile A: Main Query Input (2x1) */}
+                <BentoTile cols={2} rows={1} className="space-y-6">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                      <BarChart3 className="w-5 h-5 text-primary" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-lg">AI Generation</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Describe your analysis needs
+                      </p>
+                    </div>
                   </div>
-
-                  <div className="flex-1 flex flex-col justify-center">
-                    <p className="text-sm text-muted-foreground mb-4">
-                      View raw form responses data organized by questions or users.
-                    </p>
+  
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="question">Your question</Label>
+                      <Input
+                        id="question"
+                        placeholder="Ex: Sales per day (last 30 days)?"
+                        value={question}
+                        onChange={(e) => setQuestion(e.target.value)}
+                        onKeyPress={handleKeyPress}
+                        disabled={isLoading}
+                        className="text-base"
+                      />
+                    </div>
+  
                     <Button 
-                      onClick={() => setShowDataViewer(true)}
-                      variant="outline"
-                      className="w-full flex items-center gap-2"
+                      onClick={handleGenerateWithAI}
+                      disabled={isLoading || !question.trim()}
+                      className="flex items-center gap-2"
                     >
-                      <Database className="w-4 h-4" />
-                      View Raw Data
+                      {isLoading ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Sparkles className="w-4 h-4" />
+                      )}
+                      {isLoading ? 'Generating...' : 'Generate with AI'}
                     </Button>
                   </div>
-                </div>
-              </BentoTile>
-
-              {/* Tile C: Filters (1x1) */}
-              <BentoTile cols={1} rows={1}>
-                <div className="h-full flex flex-col">
-                  <div className="flex items-center gap-2 mb-4">
-                    <Filter className="w-5 h-5 text-primary" />
-                    <h3 className="font-semibold">Filtres</h3>
-                    <Badge variant="secondary" className="text-xs">
-                      à venir
-                    </Badge>
-                  </div>
-
-                  <div className="space-y-4 opacity-50">
-                    <div>
-                      <Label className="text-sm font-medium">Période</Label>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <div className="flex items-center gap-2 mt-1 cursor-not-allowed">
-                            <CalendarDays className="w-4 h-4 text-muted-foreground" />
-                            <span className="text-sm text-muted-foreground">
-                              Sélection de dates
-                            </span>
-                          </div>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Fonctionnalité à venir</p>
-                        </TooltipContent>
-                      </Tooltip>
+                </BentoTile>
+  
+                {/* Tile B: View Answers Raw (1x1) */}
+                <BentoTile cols={1} rows={1}>
+                  <div className="h-full flex flex-col">
+                    <div className="flex items-center gap-2 mb-4">
+                      <Database className="w-5 h-5 text-primary" />
+                      <h3 className="font-semibold">View Answers Raw</h3>
                     </div>
-
-                    <Separator />
-
-                    <div>
-                      <Label className="text-sm font-medium">Tables</Label>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <div className="mt-1 cursor-not-allowed">
-                            <span className="text-sm text-muted-foreground">
-                              Auto-détection
-                            </span>
-                          </div>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Fonctionnalité à venir</p>
-                        </TooltipContent>
-                      </Tooltip>
+  
+                    <div className="flex-1 flex flex-col justify-center">
+                      <p className="text-sm text-muted-foreground mb-4">
+                        View raw form responses data organized by questions or users.
+                      </p>
+                      <Button 
+                        onClick={() => setShowDataViewer(true)}
+                        variant="outline"
+                        className="w-full flex items-center gap-2"
+                      >
+                        <Database className="w-4 h-4" />
+                        View Raw Data
+                      </Button>
                     </div>
                   </div>
-                </div>
-              </BentoTile>
-            </BentoGrid>
-          </div>
-
-          {/* Results Section */}
+                </BentoTile>
+  
+                {/* Tile C: Filters (1x1) */}
+                <BentoTile cols={1} rows={1}>
+                  <div className="h-full flex flex-col">
+                    <div className="flex items-center gap-2 mb-4">
+                      <Filter className="w-5 h-5 text-primary" />
+                      <h3 className="font-semibold">Filtres</h3>
+                      <Badge variant="secondary" className="text-xs">
+                        à venir
+                      </Badge>
+                    </div>
+  
+                    <div className="space-y-4 opacity-50">
+                      <div>
+                        <Label className="text-sm font-medium">Période</Label>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <div className="flex items-center gap-2 mt-1 cursor-not-allowed">
+                              <CalendarDays className="w-4 h-4 text-muted-foreground" />
+                              <span className="text-sm text-muted-foreground">
+                                Sélection de dates
+                              </span>
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Fonctionnalité à venir</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </div>
+  
+                      <Separator />
+  
+                      <div>
+                        <Label className="text-sm font-medium">Tables</Label>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <div className="mt-1 cursor-not-allowed">
+                              <span className="text-sm text-muted-foreground">
+                                Auto-détection
+                              </span>
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Fonctionnalité à venir</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </div>
+                    </div>
+                  </div>
+                </BentoTile>
+              </BentoGrid>
+            </div>
+  
+            {/* Results Section */}
           {(results.length > 0 || isLoading) && (
             <div className="space-y-6">
               <div className="flex items-center gap-3">
@@ -658,6 +678,8 @@ const AiChartsBento: React.FC<AiChartsBentoProps> = ({ formId }) => {
               )}
             </div>
           )}
+            </div>
+          </div>
         </div>
 
         {/* Dummy JSON Editor Drawer */}

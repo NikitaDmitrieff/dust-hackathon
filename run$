@@ -1,0 +1,12 @@
+one terminal:
+cd src/Nikita/backend
+python3 server.py
+
+other terminal:
+npm run dashboard-server
+
+last terminal:
+npm run dev
+
+
+npm run start:all
