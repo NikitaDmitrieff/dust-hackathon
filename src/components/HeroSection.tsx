@@ -152,29 +152,29 @@ const HeroSection = ({ onAction, onEditForm, onViewDashboard, onDeleteForm }: He
 
         {/* Main Hero Content */}
         <div className="text-center space-y-8 flex-shrink-0 relative z-10">
-          {/* Central Play Button */}
+          {/* Logo with Play Button */}
           <div className="flex justify-center">
-            <div className="relative group">
-              {/* Animated rings */}
-              <div className="absolute inset-0 rounded-full bg-primary/20 animate-ping"></div>
-              <div className="absolute inset-2 rounded-full bg-primary/10 animate-ping animation-delay-1000"></div>
-              
-              {/* Main button */}
-              <Button
-                onClick={() => onAction('create')}
-                className="relative w-48 h-48 rounded-full bg-gradient-to-br from-primary via-primary to-primary/80 hover:from-primary/90 hover:via-primary/90 hover:to-primary/70 shadow-2xl hover:shadow-primary/25 transition-all duration-500 hover:scale-110 active:scale-95 group-hover:shadow-3xl border-4 border-white/20"
+            <div className="relative w-[300px] h-[300px] group">
+              {/* Logo background */}
+              <div 
+                className="w-full h-full rounded-lg"
+                style={{
+                  backgroundImage: 'url(/logo.png)',
+                  backgroundSize: 'contain',
+                  backgroundPosition: 'center',
+                  backgroundRepeat: 'no-repeat'
+                }}
               >
-                {/* Glow effect */}
-                <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                
-                {/* Play icon */}
-                <Play className="w-20 h-20 text-white ml-2 drop-shadow-lg group-hover:scale-110 transition-transform duration-300" fill="currentColor" />
-                
-                {/* Sparkle effect */}
-                <div className="absolute top-4 right-8 w-2 h-2 bg-white/60 rounded-full opacity-0 group-hover:opacity-100 animate-pulse"></div>
-                <div className="absolute bottom-6 left-6 w-1.5 h-1.5 bg-white/40 rounded-full opacity-0 group-hover:opacity-100 animate-pulse animation-delay-500"></div>
-                <div className="absolute top-8 left-4 w-1 h-1 bg-white/50 rounded-full opacity-0 group-hover:opacity-100 animate-pulse animation-delay-300"></div>
-              </Button>
+                {/* Overlay button */}
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <button
+                    onClick={() => onAction('create')}
+                    className="w-16 h-16 bg-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 flex items-center justify-center"
+                  >
+                    <Play className="w-6 h-6 text-gray-700" fill="currentColor" />
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
           
