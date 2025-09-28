@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OpenAI Realtime SDK Example</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      max-width: 600px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .container {
+      background: white;
+      border-radius: 12px;
+      padding: 30px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    }
+    h1 {
+      color: #333;
+      margin-bottom: 10px;
+    }
+    .subtitle {
+      color: #666;
+      margin-bottom: 30px;
+    }
+    .controls {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    button {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .primary {
+      background: #007AFF;
+      color: white;
+    }
+    .primary:hover:not(:disabled) {
+      background: #0056CC;
+    }
+    .secondary {
+      background: #E5E5EA;
+      color: #333;
+    }
+    .secondary:hover:not(:disabled) {
+      background: #D1D1D6;
+    }
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .status {
+      padding: 10px 15px;
+      border-radius: 6px;
+      margin-bottom: 20px;
+      font-size: 14px;
+    }
+    .status.connecting { background: #FFF3CD; color: #856404; }
+    .status.connected { background: #D4EDDA; color: #155724; }
+    .status.disconnected { background: #F8D7DA; color: #721C24; }
+    .status.error { background: #F8D7DA; color: #721C24; }
+    .conversation {
+      max-height: 300px;
+      overflow-y: auto;
+      border: 1px solid #E5E5EA;
+      border-radius: 8px;
+      padding: 15px;
+      background: #FAFAFA;
+    }
+    .message {
+      margin-bottom: 10px;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+    .user { background: #E3F2FD; }
+    .assistant { background: #F3E5F5; }
+    .empty {
+      color: #999;
+      text-align: center;
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>OpenAI Realtime SDK</h1>
+    <p class="subtitle">Real-time speech-to-speech conversation with GPT-4o</p>
+    
+    <div class="controls">
+      <button id="connectBtn" class="primary">Connect</button>
+      <button id="disconnectBtn" class="secondary" disabled>Disconnect</button>
+    </div>
+    
+    <div id="status" class="status disconnected">Disconnected</div>
+    
+    <div id="conversation" class="conversation">
+      <div class="empty">Start a conversation to see messages here</div>
+    </div>
+  </div>
+
+  <script type="module">
+    import OpenAIRealtimeClient from './openai-realtime-sdk.js';
+
+    // DOM elements
+    const connectBtn = document.getElementById('connectBtn');
+    const disconnectBtn = document.getElementById('disconnectBtn');
+    const statusDiv = document.getElementById('status');
+    const conversationDiv = document.getElementById('conversation');
+
+    let client = null;
+
+    // All prompts and session configuration are now handled by the backend
+    // The frontend is minimal and only handles UI and audio streaming
+
+    // Initialize the client (only once)
+    function initClient() {
+      // Don't create a new client if one already exists
+      if (client) {
+        console.log('Client already exists, disconnecting old one first...');
+        client.disconnect();
+      }
+      
+      client = new OpenAIRealtimeClient({
+        serverUrl: 'http://localhost:3001',
+        wsUrl: 'ws://localhost:3001/ws',
+        
+        onConnectionChange: (state) => {
+          statusDiv.className = `status ${state}`;
+          statusDiv.textContent = state.charAt(0).toUpperCase() + state.slice(1);
+          
+          connectBtn.disabled = state === 'connected' || state === 'connecting';
+          disconnectBtn.disabled = state === 'disconnected';
+        },
+        
+        onUserTranscript: (transcript) => {
+          addMessage('user', `You: ${transcript}`);
+        },
+        
+        onAssistantTranscript: (text) => {
+          updateAssistantMessage(text);
+        },
+        
+        onAssistantResponseStart: () => {
+          currentAssistantMessage = '';
+          assistantMessageEl = null;
+        },
+        
+        onError: (error) => {
+          console.error('SDK Error:', error);
+          statusDiv.className = 'status error';
+          statusDiv.textContent = `Error: ${error.message || error}`;
+        }
+      });
+    }
+
+    let currentAssistantMessage = '';
+    let assistantMessageEl = null;
+
+    function addMessage(role, text) {
+      // Remove empty state
+      if (conversationDiv.querySelector('.empty')) {
+        conversationDiv.innerHTML = '';
+      }
+      
+      const messageEl = document.createElement('div');
+      messageEl.className = `message ${role}`;
+      messageEl.textContent = text;
+      conversationDiv.appendChild(messageEl);
+      conversationDiv.scrollTop = conversationDiv.scrollHeight;
+      
+      if (role === 'assistant') {
+        assistantMessageEl = messageEl;
+      }
+    }
+
+    function updateAssistantMessage(text) {
+      currentAssistantMessage += text;
+      
+      if (!assistantMessageEl) {
+        addMessage('assistant', `Assistant: ${currentAssistantMessage}`);
+      } else {
+        assistantMessageEl.textContent = `Assistant: ${currentAssistantMessage}`;
+      }
+      
+      conversationDiv.scrollTop = conversationDiv.scrollHeight;
+    }
+
+    // Event listeners
+    connectBtn.addEventListener('click', async () => {
+      try {
+        // Prevent multiple connection attempts
+        if (client && client.isConnected) {
+          console.log('Already connected');
+          return;
+        }
+        
+        initClient();
+        await client.connect();
+      } catch (error) {
+        console.error('Connection failed:', error);
+      }
+    });
+
+    disconnectBtn.addEventListener('click', () => {
+      if (client) {
+        client.disconnect();
+      }
+    });
+
+
+    // Initialize client on page load
+    document.addEventListener('DOMContentLoaded', () => {
+      console.log('Page loaded, initializing client...');
+      initClient();
+    });
+  </script>
+</body>
+</html>

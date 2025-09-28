@@ -1,0 +1,12 @@
+Conversation Session: session_1759011396678_ddzf1kiyi
+Started: 2025-09-28T00:16:36.678808
+Ended: 2025-09-28T00:16:50.504026
+Messages: 36
+================================================================================
+
+Assistant: Hello. Let's quickly define the key details for your form. First, what's the main purpose of this form?
+
+User: Hi there.
+
+Assistant: Are you collecting feedback, registrations, orders, or something else?
+
