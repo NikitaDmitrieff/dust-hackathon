@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Mic, Phone, PhoneOff, Loader2 } from 'lucide-react';
+import { Mic, Phone, PhoneOff, Loader2, ArrowLeft } from 'lucide-react';
 
 // Extend window type to include OpenAIRealtimeClient
 declare global {
@@ -185,7 +185,19 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
     }
   };
 
-  // Disconnect functionality is now integrated into endCallAndGenerateForm
+  const handleBackButton = () => {
+    console.log('🔙 BACK BUTTON CLICKED - EXITING WITHOUT GENERATING');
+    
+    // Disconnect the call if connected
+    if (clientRef.current && connectionState === 'connected') {
+      console.log('   📞 DISCONNECTING FROM CALL...');
+      clientRef.current.disconnect();
+    }
+    
+    // Close the assistant immediately
+    console.log('   🚪 CLOSING VOICE ASSISTANT');
+    onClose();
+  };
 
   const endCallAndGenerateForm = async () => {
     console.log('\n🚀 FRONTEND: END CALL AND GENERATE FORM BUTTON CLICKED');
@@ -269,18 +281,30 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
     }
   };
 
-  // Initialize empty message
+  // Initialize empty message and auto-connect
   useEffect(() => {
     const initialMessage = mode === 'form_completion' 
-      ? 'Connect to start answering form questions via voice. When finished, click "End Call & Generate Answers".'
-      : 'Connect to start describing your form. When finished, click "End Call & Generate Form".';
+      ? 'Connecting to start answering form questions via voice. When finished, click "End Call & Generate Answers".'
+      : 'Connecting to start describing your form. When finished, click "End Call & Generate Form".';
       
     setMessages([{
       type: 'assistant',
       content: initialMessage,
       timestamp: new Date()
     }]);
+
+    // Auto-connect when component mounts
+    if (sdkLoaded && connectionState === 'disconnected') {
+      connectToAssistant();
+    }
   }, [mode]);
+
+  // Auto-connect when SDK loads
+  useEffect(() => {
+    if (sdkLoaded && connectionState === 'disconnected') {
+      connectToAssistant();
+    }
+  }, [sdkLoaded]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -311,93 +335,99 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
   const status = getStatusDisplay();
 
   return (
-    <Card className="w-full max-w-2xl mx-auto">
-      <CardHeader className="text-center">
-        <CardTitle className="flex items-center justify-center gap-2">
-          <Mic className="w-5 h-5" />
-          Voice Assistant
-        </CardTitle>
-        <p className="text-muted-foreground text-sm">
-          {mode === 'form_completion' 
-            ? 'Answer the form questions by speaking naturally with the assistant'
-            : 'Tell the assistant what kind of form you want to create'
-          }
-        </p>
-      </CardHeader>
-      
-      <CardContent className="space-y-4">
-        {/* Connection Controls */}
-        <div className="flex gap-2 justify-center">
-          {connectionState === 'connecting' ? (
-            <Button 
-              disabled={true}
-              className="flex items-center gap-2"
-            >
-              <Loader2 className="w-4 h-4 animate-spin" />
-              Connecting...
-            </Button>
-          ) : connectionState === 'connected' ? (
-            <Button 
-              onClick={endCallAndGenerateForm}
-              className="flex items-center gap-2 bg-green-600 hover:bg-green-700"
-            >
-              <PhoneOff className="w-4 h-4" />
-              End Call & {mode === 'form_completion' ? 'Generate Answers' : 'Generate Form'}
-            </Button>
-          ) : (
-            <Button 
-              onClick={connectToAssistant}
-              disabled={!sdkLoaded}
-              className="flex items-center gap-2"
-            >
-              <Phone className="w-4 h-4" />
-              Connect
-            </Button>
-          )}
-        </div>
-
-        {/* Status Indicator - Same as POC */}
-        <div className="text-center">
-          <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm ${status.className}`}>
-            <div className={`w-2 h-2 rounded-full ${status.dotClass}`} />
-            {status.text}
-          </div>
-        </div>
-
-        {/* Messages - Same style as POC */}
-        <ScrollArea className="h-64 w-full border rounded-lg p-4 bg-gray-50">
-          <div className="space-y-2">
-            {messages.map((message, index) => (
-              <div
-                key={index}
-                className={`p-2 rounded text-sm ${
-                  message.type === 'user' 
-                    ? 'bg-blue-100 text-blue-800' 
-                    : message.content.includes('Start a conversation')
-                    ? 'text-gray-500 text-center italic'
-                    : 'bg-purple-100 text-purple-800'
-                }`}
+    <div className="w-full max-w-2xl mx-auto space-y-4">
+      <Card>
+        <CardHeader className="text-center">
+          <CardTitle className="flex items-center justify-center gap-2">
+            <Mic className="w-5 h-5" />
+            Voice Assistant
+          </CardTitle>
+          <p className="text-muted-foreground text-sm">
+            {mode === 'form_completion' 
+              ? 'Answer the form questions by speaking naturally with the assistant'
+              : 'Tell the assistant what kind of form you want to create'
+            }
+          </p>
+        </CardHeader>
+        
+        <CardContent className="space-y-4">
+          {/* Connection Controls */}
+          <div className="flex gap-2 justify-center">
+            {connectionState === 'connecting' ? (
+              <Button 
+                disabled={true}
+                className="flex items-center gap-2"
               >
-                {message.content}
-              </div>
-            ))}
-            <div ref={messagesEndRef} />
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Connecting...
+              </Button>
+            ) : connectionState === 'connected' ? (
+              <Button 
+                onClick={endCallAndGenerateForm}
+                className="flex items-center gap-2 bg-green-600 hover:bg-green-700"
+              >
+                <PhoneOff className="w-4 h-4" />
+                End Call & {mode === 'form_completion' ? 'Generate Answers' : 'Generate Form'}
+              </Button>
+            ) : null}
           </div>
-        </ScrollArea>
 
-        {/* Close Button - Only show if not connected */}
-        {connectionState === 'disconnected' && (
-          <div className="flex justify-center">
-            <Button 
-              onClick={onClose} 
-              variant="outline"
-            >
-              Close Assistant
-            </Button>
+          {/* Status Indicator - Same as POC */}
+          <div className="text-center">
+            <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm ${status.className}`}>
+              <div className={`w-2 h-2 rounded-full ${status.dotClass}`} />
+              {status.text}
+            </div>
           </div>
-        )}
-      </CardContent>
-    </Card>
+
+          {/* Messages - Same style as POC */}
+          <ScrollArea className="h-64 w-full border rounded-lg p-4 bg-gray-50">
+            <div className="space-y-2">
+              {messages.map((message, index) => (
+                <div
+                  key={index}
+                  className={`p-2 rounded text-sm ${
+                    message.type === 'user' 
+                      ? 'bg-blue-100 text-blue-800' 
+                      : message.content.includes('Start a conversation')
+                      ? 'text-gray-500 text-center italic'
+                      : 'bg-purple-100 text-purple-800'
+                  }`}
+                >
+                  {message.content}
+                </div>
+              ))}
+              <div ref={messagesEndRef} />
+            </div>
+          </ScrollArea>
+
+          {/* Close Button - Only show if connection failed or SDK not loaded */}
+          {(connectionState === 'error' || !sdkLoaded) && (
+            <div className="flex justify-center">
+              <Button 
+                onClick={onClose} 
+                variant="outline"
+              >
+                Close Assistant
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Back Button - Outside card, centered */}
+      <div className="flex justify-center">
+        <Button
+          onClick={handleBackButton}
+          variant="outline"
+          size="sm"
+          className="flex items-center gap-2 bg-background/80 backdrop-blur-sm border-2 hover:bg-background/90 shadow-lg"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back
+        </Button>
+      </div>
+    </div>
   );
 };
 
