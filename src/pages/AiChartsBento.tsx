@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -41,6 +41,7 @@ const AiChartsBento: React.FC<AiChartsBentoProps> = ({ formId }) => {
   const [showDataViewer, setShowDataViewer] = useState(false);
   const [analysisHtml, setAnalysisHtml] = useState<string>('');
   const [isAnalysisLoading, setIsAnalysisLoading] = useState(false);
+  const analysisContainerRef = useRef<HTMLDivElement | null>(null);
   const { toast } = useToast();
 
   // Debug logging
@@ -112,6 +113,28 @@ const AiChartsBento: React.FC<AiChartsBentoProps> = ({ formId }) => {
       autoGenerateCharts();
     }
   }, [isDemoMode]);
+
+  // Execute inline scripts returned by Christopher backend so Plotly charts render
+  useEffect(() => {
+    if (!analysisHtml) {
+      return;
+    }
+    const container = analysisContainerRef.current;
+    if (!container) {
+      return;
+    }
+
+    const scripts = Array.from(container.querySelectorAll('script'));
+    scripts.forEach((script) => {
+      const replacement = document.createElement('script');
+      // copy attributes like src if provided
+      Array.from(script.attributes).forEach((attr) => {
+        replacement.setAttribute(attr.name, attr.value);
+      });
+      replacement.appendChild(document.createTextNode(script.textContent ?? ''));
+      script.parentNode?.replaceChild(replacement, script);
+    });
+  }, [analysisHtml]);
 
   // Save history to localStorage
   const saveToHistory = (query: string) => {
@@ -634,6 +657,43 @@ const AiChartsBento: React.FC<AiChartsBentoProps> = ({ formId }) => {
           </div>
         )}
 
+          {/* Empty State or Christopher Analysis */}
+          {results.length === 0 && !isLoading && (
+            <div className="text-center py-12">
+              {isAnalysisLoading ? (
+                <div>
+                  <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Loader2 className="w-8 h-8 text-primary animate-spin" />
+                  </div>
+                  <h3 className="text-lg font-semibold mb-2">Analyse en cours...</h3>
+                  <p className="text-muted-foreground max-w-md mx-auto mb-4">
+                    Christopher analyse les données de votre formulaire pour générer 
+                    des insights personnalisés.
+                  </p>
+                </div>
+              ) : analysisHtml ? (
+                <div 
+                  ref={analysisContainerRef}
+                  className="text-left max-w-4xl mx-auto"
+                  dangerouslySetInnerHTML={{ __html: analysisHtml }}
+                />
+              ) : (
+                <div>
+                  <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <BarChart3 className="w-8 h-8 text-primary" />
+                  </div>
+                  <h3 className="text-lg font-semibold mb-2">Analyse en cours...</h3>
+                  <p className="text-muted-foreground max-w-md mx-auto mb-4">
+                    L'IA analyse automatiquement les données de votre formulaire pour générer 
+                    les visualisations les plus pertinentes.
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    <strong>Astuce :</strong> activez le Mode démo pour voir un exemple avec des données factices.
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Dummy JSON Editor Drawer */}

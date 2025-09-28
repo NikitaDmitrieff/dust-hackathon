@@ -8,7 +8,8 @@
     "build": "vite build",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "dashboard-server": "node server/analyze-dashboard-server.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
